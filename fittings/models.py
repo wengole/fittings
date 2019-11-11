@@ -45,6 +45,8 @@ class DogmaAttribute(models.Model):
 
 # Dogma Effect
 class DogmaEffect(models.Model):
+    # 11 - Low Power | 12 - High Power | 13 - Med Power
+    # 2663 - Rig Slot | 3772 - Subsystem | 6306 - Service Slot
     effect_id = models.IntegerField()
     is_default = models.BooleanField()
 
