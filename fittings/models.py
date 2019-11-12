@@ -1,36 +1,6 @@
 from django.db import models
 from model_utils import Choices
-
-
-# Fitting
-class Fitting(models.Model):
-    description = models.CharField(max_length=1000)  # unsure on max length here
-    fitting_id = models.IntegerField()
-    name = models.CharField(max_length=255, null=False)
-    ship_type_id = models.IntegerField()
-
-
-# Fitting items
-class FittingItem(models.Model):
-    _flag_enum = Choices('Cargo', 'DroneBay', 'FighterBay', 'HiSlot0', 'HiSlot1', 'HiSlot2',
-                         'HiSlot3', 'HiSlot4', 'HiSlot5', 'HiSlot6', 'HiSlot7', 'Invalid',
-                         'LoSlot0', 'LoSlot1', 'LoSlot2', 'LoSlot3', 'LoSlot4', 'LoSlot5',
-                         'LoSlot6', 'LoSlot7', 'MedSlot0', 'MedSlot1', 'MedSlot2', 'MedSlot3',
-                         'MedSlot4', 'MedSlot5', 'MedSlot6', 'MedSlot7', 'RigSlot0', 'RigSlot1',
-                         'RigSlot2', 'ServiceSlot0', 'ServiceSlot1', 'ServiceSlot2', 'ServiceSlot3',
-                         'ServiceSlot4', 'ServiceSlot5', 'ServiceSlot6', 'ServiceSlot7', 'SubSystemSlot0',
-                         'SubSystemSlot1', 'SubSystemSlot2', 'SubSystemSlot3')
-    flag = models.CharField(max_length=25, choices=_flag_enum, default='Invalid')
-    quantity = models.IntegerField()
-    type_id = models.IntegerField()
-
-
-# Doctrine
-class Doctrine(models.Model):
-    name = models.CharField(max_length=255, null=False)
-    icon_url = models.URLField(null=True)
-    fittings = models.ManyToManyField(Fitting, related_name='doctrines')
-    description = models.CharField(max_length=1000)
+from .managers import TypeManager, DogmaAttributeManager, DogmaEffectManager
 
 
 # Dogma Attribute
@@ -40,7 +10,9 @@ class DogmaAttribute(models.Model):
     # 182 | 183 | 184 --- Req Skill 1/2/3
     # 277 - Req. Skill 1 Lvl | 278 | 279 -- Req Skill 1/2 Lvl
     attribute_id = models.IntegerField()
-    value = models.DecimalField()
+    value = models.FloatField()
+
+    objects = DogmaAttributeManager()
 
 
 # Dogma Effect
@@ -49,6 +21,8 @@ class DogmaEffect(models.Model):
     # 2663 - Rig Slot | 3772 - Subsystem | 6306 - Service Slot
     effect_id = models.IntegerField()
     is_default = models.BooleanField()
+
+    objects = DogmaEffectManager()
 
 
 # Type Model
@@ -66,3 +40,42 @@ class Type(models.Model):
     packaged_volume = models.FloatField(null=True)
     portion_size = models.IntegerField(null=True)
     radius = models.FloatField(null=True)
+    graphic_id = models.IntegerField(null=True)
+    icon_id = models.IntegerField(null=True)
+    market_group_id = models.IntegerField(null=True)
+
+    objects = TypeManager()
+
+
+# Fitting
+class Fitting(models.Model):
+    description = models.CharField(max_length=1000)  # unsure on max length here
+    name = models.CharField(max_length=255, null=False)
+    ship_type = models.ForeignKey(Type, on_delete=models.DO_NOTHING)
+    ship_type_id = models.IntegerField()
+
+
+# Fitting items
+class FittingItem(models.Model):
+    fit = models.ForeignKey(Fitting, on_delete=models.CASCADE, related_name='items')
+    _flag_enum = Choices('Cargo', 'DroneBay', 'FighterBay', 'HiSlot0', 'HiSlot1', 'HiSlot2',
+                         'HiSlot3', 'HiSlot4', 'HiSlot5', 'HiSlot6', 'HiSlot7', 'Invalid',
+                         'LoSlot0', 'LoSlot1', 'LoSlot2', 'LoSlot3', 'LoSlot4', 'LoSlot5',
+                         'LoSlot6', 'LoSlot7', 'MedSlot0', 'MedSlot1', 'MedSlot2', 'MedSlot3',
+                         'MedSlot4', 'MedSlot5', 'MedSlot6', 'MedSlot7', 'RigSlot0', 'RigSlot1',
+                         'RigSlot2', 'ServiceSlot0', 'ServiceSlot1', 'ServiceSlot2', 'ServiceSlot3',
+                         'ServiceSlot4', 'ServiceSlot5', 'ServiceSlot6', 'ServiceSlot7', 'SubSystemSlot0',
+                         'SubSystemSlot1', 'SubSystemSlot2', 'SubSystemSlot3')
+    flag = models.CharField(max_length=25, choices=_flag_enum, default='Invalid')
+    quantity = models.IntegerField(null=True)
+    type_fk = models.ForeignKey(Type, on_delete=models.DO_NOTHING)
+    type_id = models.IntegerField()
+
+
+# Doctrine
+class Doctrine(models.Model):
+    name = models.CharField(max_length=255, null=False)
+    icon_url = models.URLField(null=True)
+    fittings = models.ManyToManyField(Fitting, related_name='doctrines')
+    description = models.CharField(max_length=1000)
+
