@@ -6,7 +6,7 @@ from allianceauth.services.hooks import MenuItemHook, UrlHook
 class FittingMenu(MenuItemHook):
     def __init__(self):
         MenuItemHook.__init__(self, 'Fittings and Doctrines',
-                              'fa fa-icon-list-alt fa-fw', 'fittings:test',
+                              'fa fa-list-alt fa-fw', 'fittings:dashboard',
                               navactive=['fittings:'])
 
         def render(self, request):
@@ -22,4 +22,4 @@ def register_menu():
 
 @hooks.register('url_hook')
 def register_url():
-    return UrlHook(urls, 'fittings', 'r^fittings/')
+    return UrlHook(urls, 'fittings', '^fittings/')
