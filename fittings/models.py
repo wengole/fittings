@@ -52,7 +52,7 @@ class Fitting(models.Model):
     description = models.CharField(max_length=1000)  # unsure on max length here
     name = models.CharField(max_length=255, null=False)
     ship_type = models.ForeignKey(Type, on_delete=models.DO_NOTHING)
-    ship_type_id = models.IntegerField()
+    ship_type_type_id = models.IntegerField()
 
 
 # Fitting items
