@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
-from moonstuff import __version__
+from fittings import __version__
 
 install_requires = [
     'django-bootstrap-form',
