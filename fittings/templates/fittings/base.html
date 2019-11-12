@@ -1,10 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'allianceauth/base.html' %}
+{% load i18n %}
+{% block extra_css %}
+    <style>
+        .flex-container {
+            display: flex;
+            flex-direction: row;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+        .flex-wrap {
+            display: -webkit-flex; /* Safari */
+            -webkit-flex-wrap: wrap; /* Safari 6.1+ */
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .flex-item {
 
-</body>
-</html>
+        }
+    </style>
+    {% include 'bundles/datatables-css.html' %}
+{% endblock extra_css %}
+{% block content %}
+    <div class="col-lg-12">
+        <br />
+        <div class="col-lg-12 container">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                            <span class="sr-only">{% trans "Toggle navigation" %}</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="{% url 'fittings:dashboard' %}">{% trans "Fittings and Doctrines" %}</a>
+                    </div>
+                    <ul class="nav navbar-nav navbar-left">
+                        {% if perms.fittings.access_fittings %}
+                            <li> <a href="#">View Fits</a></li>
+                            <li> <a href="#">View Doctrines</a></li>
+                        {% endif %}
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if perms.fittings.manage_fittings %}
+                            <li> <a href="#">Add Fitting</a></li>
+                        {% endif %}
+                        <li class="dropdown" style="margin-right: 5px">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> Add Token <span class="fa fa-plus"></span> </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">{% trans "Character Token" %}</a></li>
+                                <li><a href="#">{% trans "Corporate Token" %}</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            {% block fittings_block %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}
