@@ -14,6 +14,9 @@ class DogmaAttribute(models.Model):
 
     objects = DogmaAttributeManager()
 
+    class Meta:
+        default_permissions = ()
+
 
 # Dogma Effect
 class DogmaEffect(models.Model):
@@ -23,6 +26,9 @@ class DogmaEffect(models.Model):
     is_default = models.BooleanField()
 
     objects = DogmaEffectManager()
+
+    class Meta:
+        default_permissions = ()
 
 
 # Type Model
@@ -46,6 +52,9 @@ class Type(models.Model):
 
     objects = TypeManager()
 
+    class Meta:
+        default_permissions = ()
+
 
 # Fitting
 class Fitting(models.Model):
@@ -53,6 +62,14 @@ class Fitting(models.Model):
     name = models.CharField(max_length=255, null=False)
     ship_type = models.ForeignKey(Type, on_delete=models.DO_NOTHING)
     ship_type_type_id = models.IntegerField()
+
+    class Meta:
+        default_permissions = (
+            ('access_fittings', 'Can access the fittings module.'),
+        )
+        unique_together = (
+            ('ship_type_type_id', 'name'),
+        )
 
 
 # Fitting items
@@ -71,6 +88,9 @@ class FittingItem(models.Model):
     type_fk = models.ForeignKey(Type, on_delete=models.DO_NOTHING)
     type_id = models.IntegerField()
 
+    class Meta:
+        default_permissions = ()
+
 
 # Doctrine
 class Doctrine(models.Model):
@@ -78,4 +98,9 @@ class Doctrine(models.Model):
     icon_url = models.URLField(null=True)
     fittings = models.ManyToManyField(Fitting, related_name='doctrines')
     description = models.CharField(max_length=1000)
+
+    class Meta:
+        default_permissions = (
+            ("manage", "Can manage doctrines and fits."),
+        )
 
