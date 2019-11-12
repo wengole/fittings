@@ -7,5 +7,5 @@ from . import views
 app_name = 'fittings'
 
 urlpatterns = [
-    url(r'^$', views.test, name='test')
+    url(r'^$', views.dashboard, name='dashboard')
 ]

@@ -32,7 +32,7 @@ class EftParser:
                 else:
                     quantity = line.split()[-1]  # Quantity will always be the last element, if it is there.
 
-                    if 'x' in quantity:
+                    if 'x' in quantity and quantity[1:].isdigit():
                         item_name = line.strip(quantity).strip()
                         cargo_drone.append({'name': item_name, 'quantity': int(quantity.strip('x'))})
                     else:
@@ -51,7 +51,7 @@ def _get_type(type_name):
 
 
 @shared_task()
-def create_fitting_item(fit_pk, item):
+def create_fitting_item(fit, item):
     count = None
     quantity = None
     if 'count' in item:
@@ -62,13 +62,15 @@ def create_fitting_item(fit_pk, item):
     # Dogma Effects
     flags = {11: 'LoSlot', 12: 'HiSlot', 13: 'MedSlot', 2663: 'RigSlot', 3772: 'SubSystemSlot', 6306: 'ServiceSlot'}
     effects = type_obj.dogma_effects.filter(effect_id__in=flags).values_list('effect_id', flat=True)
-    if len(effects) == 0:
+    effects = list(effects)
+    if count is None:
         flag = 'Cargo'
-        quantity = item[quantity]
-    elif count is None:
+        quantity = item['quantity']
+    else:
         flag = flags[effects[0]] + str(count)
 
-    item = FittingItem.objects.create(flag=flag, quantity=None, type=type_obj, type_id=type_obj.pk, fit__pk=fit_pk)
+    item = FittingItem.objects.create(flag=flag, quantity=quantity, type_fk=type_obj,
+                                      type_id=type_obj.pk, fit=fit)
 
 
 @shared_task
@@ -77,13 +79,14 @@ def create_fit(eft_text, description=None):
 
     def __create_fit(ship_type, name, description):
         type_obj = _get_type(ship_type)
-        fit = Fitting.objects.create(ship_type=type_obj, ship_type_id=type_obj.pk, name=name, description=description)
+        fit = Fitting.objects.create(ship_type=type_obj, ship_type_type_id=type_obj.pk,
+                                     name=name, description=description)
         return fit
 
-    fit = __create_fit(parsed_eft['ship_type'], parsed_eft['name'], description)
+    fit = __create_fit(parsed_eft['ship'], parsed_eft['name'], description)
 
     for module in parsed_eft['modules']:
-        create_fitting_item(fit.pk, module)
+        create_fitting_item(fit, module)
 
     for item in parsed_eft['cargo_drones']:
-        create_fitting_item(fit.pk, item)
+        create_fitting_item(fit, item)

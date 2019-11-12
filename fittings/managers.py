@@ -13,7 +13,7 @@ class TypeManager(models.Manager):
         return _id
 
     def create_type(self, type_name):
-        _id = self.__get_type_id(type_name)
+        _id = self.__get_type_id(self, type_name)
         c = esi_client_factory()
         type_result = c.Universe.get_universe_types_type_id(type_id=_id).result()
         attributes = type_result.pop('dogma_attributes')
@@ -39,7 +39,6 @@ class DogmaAttributeManager(models.Manager):
 
         tms = []
         for attribute in attributes:
-            print(attribute)
             att = self.create(**attribute)
             tm = through_model(type_id=type_pk, dogmaattribute_id=att.pk)
             tms.append(tm)
