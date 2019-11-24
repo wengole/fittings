@@ -38,13 +38,12 @@
                     </div>
                     <ul class="nav navbar-nav navbar-left">
                         {% if perms.fittings.access_fittings %}
-                            <li> <a href="#">View Fits</a></li>
-                            <li> <a href="#">View Doctrines</a></li>
+                            <li> <a href="#">View All Fits</a></li>
                         {% endif %}
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         {% if perms.fittings.manage_fittings %}
-                            <li> <a href="#">Add Fitting</a></li>
+                            <li> <a href="{% url 'fittings:add_fit' %}">Add Fitting</a></li>
                         {% endif %}
                         <li class="dropdown" style="margin-right: 5px">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> Add Token <span class="fa fa-plus"></span> </a>
