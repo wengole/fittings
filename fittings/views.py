@@ -32,14 +32,18 @@ def _build_slots(type_id):
 def dashboard(request):
     msg = None
 
-    ctx = {'msg': msg}
+    doc_dict = {}
+    docs = Doctrine.objects.all()
+    for doc in docs:
+        doc_dict[doc.pk] = doc.fittings.all()
+    ctx = {'msg': msg, 'docs': docs, 'doc_dict': doc_dict}
     return render(request, 'fittings/dashboard.html', context=ctx)
 
 
 @login_required()
 def add_fit(request):
     msg = None
-    if request.METHOD == 'POST':
+    if request.method == 'POST':
         etf_text = request.POST['eft']
         description = request.POST['description']
 
@@ -75,3 +79,13 @@ def view_fit(request, fit_id):
     ctx['fit'] = fit
     ctx['fitting'] = fittings
     return render(request, 'fittings/view_fit.html', context=ctx)
+
+
+@login_required()
+def add_doctrine(request):
+    pass
+
+
+@login_required()
+def view_doctrine(request, doctrine_id):
+    pass
