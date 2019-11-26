@@ -18,7 +18,7 @@
 
 {% block fittings_block %}
     <br />
-    <div class="col-md-9">
+    <div class="col-md-9 col-md-offset-3">
         <div class="panel panel-default">
             <div class="panel-heading"> Fittings </div>
             <div class="panel-body">
@@ -95,7 +95,7 @@
                                     Hull
                                 </div>
                                 <div class="panel-body text-center">
-                                    {{ fitting.item_name }}
+                                    {{ fit.ship_type.name }}
                                 </div>
                                 <div class="panel-heading text-center">
                                     Fitting Notes

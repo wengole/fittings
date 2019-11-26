@@ -6,22 +6,36 @@ from .models import Doctrine, Fitting, Type, FittingItem, DogmaEffect
 
 
 # Create your views here.
-def _build_slots(type_id):
-    ship = Type.objects.get(type_id=type_id)
+def _build_slots(fit):
+    ship = fit.ship_type
     attributes = (12, 13, 14, 1137, 1367, 2056)
+
+    t3c = ship.dogma_attributes.filter(attribute_id=1367).exists()
 
     attributes = ship.dogma_attributes.filter(attribute_id__in=attributes)
 
-    slots = {}
+    slots = {'low': 0, 'med': 0, 'high': 0}
     for attribute in attributes:
         if attribute.attribute_id == 1367:
+            subAttbs = (1374, 1375, 1376)
             slots['sub'] = 4
+            if t3c:
+                for item in FittingItem.objects.filter(fit=fit):
+                    attbs = item.type_fk.dogma_attributes.filter(attribute_id__in=subAttbs)
+                    for attb in attbs:
+                        if attb.attribute_id == 1374:
+                            slots['high'] += int(attb.value)
+                        if attb.attribute_id == 1375:
+                            slots['med'] += int(attb.value)
+                        if attb.attribute_id == 1376:
+                            slots['low'] += int(attb.value)
+
         elif attribute.attribute_id == 12:
-            slots['low'] = int(attribute.value)
+            slots['low'] += int(attribute.value)
         elif attribute.attribute_id == 13:
-            slots['med'] = int(attribute.value)
+            slots['med'] += int(attribute.value)
         elif attribute.attribute_id == 14:
-            slots['high'] = int(attribute.value)
+            slots['high'] += int(attribute.value)
         elif attribute.attribute_id == 1137:
             slots['rig'] = int(attribute.value)
 
@@ -75,7 +89,7 @@ def view_fit(request, fit_id):
         else:
             fittings[item.flag] = item
 
-    ctx['slots'] = _build_slots(fit.ship_type_type_id)
+    ctx['slots'] = _build_slots(fit)
     ctx['fit'] = fit
     ctx['fitting'] = fittings
     return render(request, 'fittings/view_fit.html', context=ctx)

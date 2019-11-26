@@ -9,6 +9,7 @@ class DogmaAttribute(models.Model):
     # 1137 - Rig Slots | 1367 - Sub System Slots | 2056 - Service Slots
     # 182 | 183 | 184 --- Req Skill 1/2/3
     # 277 - Req. Skill 1 Lvl | 278 | 279 -- Req Skill 1/2 Lvl
+    # 1374 - HiSlotModifier | 1375 - MedSlotModifier | 1376 - RigSlotModifier
     attribute_id = models.IntegerField()
     value = models.FloatField()
 
