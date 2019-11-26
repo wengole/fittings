@@ -21,14 +21,15 @@ class EftParser:
             if line.startswith('['):
                 if ', ' in line:
                     ship_type, fit_name = line[1:-1].split(', ')
+                    continue
 
                 if 'empty' in line.strip('[]').lower():
                     continue
 
             else:
-                if ', ' in line:
-                    module, charge = line.split(', ')
-                    modules.append({'name': module, 'charge': charge, 'count': counter})
+                if ',' in line:
+                    module, charge = line.split(',')
+                    modules.append({'name': module, 'charge': charge.strip(), 'count': counter})
                 else:
                     quantity = line.split()[-1]  # Quantity will always be the last element, if it is there.
 
