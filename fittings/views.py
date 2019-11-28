@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from .tasks import create_fit
 from django.contrib.auth.decorators import login_required
-from django.db.models import Subquery, OuterRef, Case, When, Value, CharField, F, Exists
+from django.db.models import Subquery, OuterRef, Case, When, Value, CharField, F, Exists, Count
 from .models import Doctrine, Fitting, Type, FittingItem, DogmaEffect
 
 
@@ -97,7 +97,26 @@ def view_fit(request, fit_id):
 
 @login_required()
 def add_doctrine(request):
-    pass
+    ctx = {}
+    if request.method == 'POST':
+        name = request.POST['name']
+        description = request.POST['description']
+        icon_url = request.POST['iconSelect']
+        fitSelect = [int(fit) for fit in request.POST.getlist('fitSelect')]
+
+        fits = Fitting.objects.filter(pk__in=fitSelect)
+        d = Doctrine(name=name, description=description, icon_url=icon_url)
+        d.save()
+        for fitting in fits:
+            d.fittings.add(fitting)
+        return redirect('fittings:dashboard')
+
+    fits = Fitting.objects.all()
+    ships = Fitting.objects.order_by('ship_type').values('ship_type', 'ship_type__name')\
+        .annotate(a=Count('ship_type'))
+    ctx['fittings'] = fits
+    ctx['ships'] = ships
+    return render(request, 'fittings/add_doctrine.html', context=ctx)
 
 
 @login_required()
