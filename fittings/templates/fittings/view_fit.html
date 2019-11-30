@@ -18,7 +18,22 @@
 
 {% block fittings_block %}
     <br />
-    <div class="col-md-9 col-md-offset-3">
+    <div class="col-md-3">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                Fit Information
+            </div>
+            <div class="panel-body">
+                <h3>Doctrines</h3>
+                <ul>
+                    {% for doctrine in doctrines %}
+                    <li> <a href="{% url 'fittings:view_doctrine' doctrine.pk %}">{{ doctrine.name }}</a> </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
         <div class="panel panel-default">
             <div class="panel-heading"> Fittings </div>
             <div class="panel-body">

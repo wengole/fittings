@@ -89,6 +89,7 @@ def view_fit(request, fit_id):
         else:
             fittings[item.flag] = item
 
+    ctx['doctrines'] = fit.doctrines.all()
     ctx['slots'] = _build_slots(fit)
     ctx['fit'] = fit
     ctx['fitting'] = fittings
@@ -121,4 +122,23 @@ def add_doctrine(request):
 
 @login_required()
 def view_doctrine(request, doctrine_id):
-    pass
+    ctx = {}
+    try:
+        doctrine = Doctrine.objects.get(pk=doctrine_id)
+    except Doctrine.DoesNotExist:
+        msg = ('warning', 'Doctrine not found!')
+
+        return redirect('fittings:dashboard')
+
+    ctx['doctrine'] = doctrine
+    ctx['fits'] = doctrine.fittings.all()
+    return render(request, 'fittings/view_doctrine.html', context=ctx)
+
+
+@login_required()
+def view_all_fits(request):
+    ctx = {}
+
+    fits = Fitting.objects.all()
+    ctx['fits'] = fits
+    return render(request, 'fittings/view_all_fits.html', context=ctx)

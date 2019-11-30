@@ -1,0 +1,71 @@
+{% extends 'fittings/base.html' %}
+{% load i18n %}
+{% load humanize %}
+{% load filters %}
+{% load static %}
+{% block extra_css %}
+    {% include 'bundles/datatables-css.html' %}
+{% endblock %}
+
+{% block page_title %}{{ fitting.name }} {% trans "Fit" %}{% endblock %}
+
+{% block fittings_block %}
+    <br />
+    <div class="col-md-3">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                Fit Information
+            </div>
+            <div class="panel-body">
+                <h3>Doctrine Info</h3>
+                <ul>
+                    {% for doctrine in doctrines %}
+                    <li> <a href="#">{{ doctrine.name }}</a> </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="panel panel-default">
+            <div class="panel-heading">Doctrine Fits</div>
+            <div class="panel-body">
+                <table class="table table-hover dataTable" id="fitsTable">
+                    <thead>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Ship Type</th>
+                    </thead>
+                    <tbody>
+                        {% if not fits %}
+                            <tr>
+                                <td colspan="4">
+                                    <div class="alert alert-warning" style="text-align: center"> No Fits Found </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            {% for fit in fits %}
+                                <tr>
+                                    <td> <a href="{% url 'fittings:view_fit' fit.pk %}">{{ fit.name }}</a> </td>
+                                    <td> {{ fit.description }} </td>
+                                    <td> {% item_img_circle fit.ship_type_type_id fit.ship_type.name '32' %} {{ fit.ship_type.name }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_javascript %}
+    {% include 'bundles/datatables-js.html' %}
+{% endblock %}
+
+{% block extra_script %}
+     $(document).ready(function(){
+        $('#fitsTable').DataTable();
+        $('[data-toggle="tooltip"]').tooltip();
+    })
+{% endblock %}

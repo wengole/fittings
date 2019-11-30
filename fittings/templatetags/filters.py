@@ -8,8 +8,14 @@ def get_item(dict_, key):
 
 
 @register.simple_tag()
+def item_img_circle(_id, name, size):
+    return mark_safe('<img class="img-circle" src="https://imageserver.eveonline.com/Type/%s_128.png"'
+                     ' style="height: %spx; width: %spx;" title="%s">' % (_id, size, size, name))
+
+
+@register.simple_tag()
 def item_img(_id, name, size):
-    return mark_safe('<img src="https://imageserver.eveonline.com/Type/%s_64.png"'
+    return mark_safe('<img src="https://imageserver.eveonline.com/Type/%s_128.png"'
                      ' style="height: %spx; width: %spx;" title="%s">' % (_id, size, size, name))
 
 
