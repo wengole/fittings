@@ -142,3 +142,23 @@ def view_all_fits(request):
     fits = Fitting.objects.all()
     ctx['fits'] = fits
     return render(request, 'fittings/view_all_fits.html', context=ctx)
+
+
+@login_required()
+def edit_doctrine(request, doctrine_id):
+    ctx = {}
+    try:
+        doctrine = Doctrine.objects.get(pk=doctrine_id)
+    except Doctrine.DoesNotExits:
+        msg = ('msg', 'Doctrine not found!')
+
+        return redirect('fittings:dashboard')
+
+    ctx['doctrine'] = doctrine
+    ctx['fits'] = doctrine.fittings.all()
+    return render(request, 'fittings/edit_fit.html', context=ctx)
+
+
+@login_required()
+def delete_doctrine(request, doctrine_id):
+    pass
