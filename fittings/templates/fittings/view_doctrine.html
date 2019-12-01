@@ -7,22 +7,57 @@
     {% include 'bundles/datatables-css.html' %}
 {% endblock %}
 
-{% block page_title %}{{ fitting.name }} {% trans "Fit" %}{% endblock %}
+{% block page_title %}{{ doctrine.name }} {% trans "Doctrine" %}{% endblock %}
 
 {% block fittings_block %}
+    {# modal start #}
+    <div class="modal fade" id="deleteModal" role="dialog" tabindex="-1" aria-labelledby="modalTitle">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="modalTitle">Are you sure?</h4>
+                </div>
+                <div class="modal-body">
+                    <p style="white-space: pre-line">Are you sure you wish to delete this doctrine?
+
+                        <i><strong>This action is permanent.</strong></i></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">No - Close</button>
+                    <a href="#" type="button" class="btn btn-danger">Yes - Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# modal end #}
     <br />
     <div class="col-md-3">
         <div class="panel panel-primary">
             <div class="panel-heading">
-                Fit Information
+                Doctrine Information
+                {% if perms.manage_fittings %}
+                    <span data-toggle="modal" data-target="#deleteModal">
+                        <button class="btn btn-xs btn-danger" style="float: right; margin-left: 5px;" data-toggle="tooltip" data-placement="top" title="Delete Doctrine"><span class="fa fa-times"></span> </button>
+                    </span>
+                    <a href="#" class="btn btn-xs btn-warning" style="float: right" data-toggle="tooltip" data-placement="top" title="Edit Doctrine"><span class="fa fa-pencil"></span> </a>
+                {% endif %}
             </div>
             <div class="panel-body">
-                <h3>Doctrine Info</h3>
-                <ul>
-                    {% for doctrine in doctrines %}
-                    <li> <a href="#">{{ doctrine.name }}</a> </li>
-                    {% endfor %}
-                </ul>
+                <img src="{{ doctrine.icon_url }}" class="img-circle center-block" style="text-align: center"/>
+                <h4 style="text-align: center">{{ doctrine.name }}</h4>
+                <hr />
+                <dl>
+                    <dt>Description</dt>
+                    <dd>{{ doctrine.description }}</dd>
+                    <dt>Created</dt>
+                    <dd>{{ doctrine.created|date:'d M Y H:i:s' }}</dd>
+                    {% if doctrine.last_updated %}
+                        <dt>Last Updated</dt>
+                        <dd>{{ doctrine.last_updated|date:'d M Y H:i:s' }}</dd>
+                    {% endif %}
+                </dl>
             </div>
         </div>
     </div>
