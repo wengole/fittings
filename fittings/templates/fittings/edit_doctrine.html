@@ -1,0 +1,93 @@
+{% extends 'fittings/base.html' %}
+{% load i18n %}
+{% load humanize %}
+{% load filters %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/css/multi-select.min.css" />
+    <style>
+        .form-control {
+            margin: 2px;
+        }
+
+    </style>
+
+{% endblock %}
+
+{% block page_title %}{% trans "Add Doctrine" %}{% endblock %}
+
+{% block fittings_block %}
+    {% if msg %}
+            <div class="alert alert-{{ msg.0 }} alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="close">
+                        <span aria-hidden="true">&times</span>
+                    </button>
+                    {% if msg.0 != 'warning' %}<h4>{% if msg.0 == 'danger' %}Oh No!{% elif msg.0 == 'success' %}Success!{% endif %}</h4>{% endif %}
+                    <p>{{ msg.1 }}</p>
+                </div>
+        {% endif %}
+    <div class="container col-sm-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                New Doctrine
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-10 col-md-offset-1">
+                        <form class="form-signin" role="form" action="" method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="name" class="col-sm-2 control-label">Doctrine Name</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" name="name" id="name" value="{{ doctrine.name }}" required/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="description" class="col-sm-2 control-label">Doctrine Description</label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control" name="description" id="description" rows="4">{{ doctrine.description }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="fitSelect" class="col-sm-2 control-label">Select Fits</label>
+                                <div class="col-sm-10" style="margin-top: 5px; margin-bottom: 5px;">
+                                    <select multiple="multiple" id="fitSelect" name="fitSelect">
+                                        {% for fit in doc_fits %}
+                                            <option value="{{ fit.pk }}" selected>{{ fit.name }} ({{ fit.ship_type.name }})</option>
+                                        {% endfor %}
+                                        {% for fit in fits %}
+                                            <option value="{{ fit.pk }}">{{ fit.name }} ({{fit.ship_type.name}})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="iconSelect" class="col-sm-2 control-label">Select Doctrine Icon</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" name="iconSelect" id="iconSelect" aria-describedby="helpBlock">
+                                        <option value="{{ doctrine.icon_url }}" selected> Current Icon </option>
+                                        {% for ship in ships %}
+                                            <option value="https://imageserver.eveonline.com/Type/{{ship.ship_type}}_64.png">{{ship.ship_type__name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span id="helpBlock" class="help-block"> If you do not see the ship type that you would like to use for the icon, add a fit that uses that ship type and try again.</span>
+                                </div>
+                            </div>
+                            <br />
+                            <button class="btn btn-primary btn-block" type="submit">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_javascript %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/js/jquery.multi-select.js" integrity="sha256-JU2QMhOvXGZtWxxkQTEgpVjdPHMYMuVYbYzNqfsioNw=" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block extra_script %}
+    $('#fitSelect').multiSelect()
+{% endblock %}

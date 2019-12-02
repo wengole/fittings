@@ -154,11 +154,38 @@ def edit_doctrine(request, doctrine_id):
 
         return redirect('fittings:dashboard')
 
+    if request.method == 'POST':
+        name = request.POST['name']
+        description = request.POST['description']
+        icon_url = request.POST['iconSelect']
+        fitSelect = [int(fit) for fit in request.POST.getlist('fitSelect')]
+        fits = doctrine.fittings.all()
+
+        fits = Fitting.objects.filter(pk__in=fitSelect)
+        doctrine.name = name
+        doctrine.description = description
+        doctrine.icon_url = icon_url
+        doctrine.save()
+        doctrine.fittings.clear()
+        for fit in fitSelect:
+            doctrine.fittings.add(fit)
+        return redirect('fittings:view_doctrine', doctrine_id)
+
     ctx['doctrine'] = doctrine
-    ctx['fits'] = doctrine.fittings.all()
-    return render(request, 'fittings/edit_fit.html', context=ctx)
+    ctx['doc_fits'] = doctrine.fittings.all()
+    ctx['fits'] = Fitting.objects.exclude(pk__in=ctx['doc_fits']).all()
+    return render(request, 'fittings/edit_doctrine.html', context=ctx)
 
 
 @login_required()
 def delete_doctrine(request, doctrine_id):
-    pass
+    try:
+        doctrine = Doctrine.objects.get(pk=doctrine_id)
+    except Doctrine.DoesNotExist:
+        msg = ('warning', 'Doctrine not found!')
+
+        return redirect('fittings:dashboard')
+
+    doctrine.delete()
+
+    return redirect('fittings:dashboard')

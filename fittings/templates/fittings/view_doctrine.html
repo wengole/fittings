@@ -25,7 +25,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">No - Close</button>
-                    <a href="#" type="button" class="btn btn-danger">Yes - Delete</a>
+                    <a href="{% url 'fittings:delete_doctrine' doctrine.pk %}" type="button" class="btn btn-danger">Yes - Delete</a>
                 </div>
             </div>
         </div>
@@ -41,7 +41,7 @@
                     <span data-toggle="modal" data-target="#deleteModal">
                         <button class="btn btn-xs btn-danger" style="float: right; margin-left: 5px;" data-toggle="tooltip" data-placement="top" title="Delete Doctrine"><span class="fa fa-times"></span> </button>
                     </span>
-                    <a href="#" class="btn btn-xs btn-warning" style="float: right" data-toggle="tooltip" data-placement="top" title="Edit Doctrine"><span class="fa fa-pencil"></span> </a>
+                    <a href="{% url 'fittings:edit_doctrine' doctrine.pk %}" class="btn btn-xs btn-warning" style="float: right" data-toggle="tooltip" data-placement="top" title="Edit Doctrine"><span class="fa fa-pencil"></span> </a>
                 {% endif %}
             </div>
             <div class="panel-body">
