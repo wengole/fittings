@@ -70,7 +70,7 @@ def create_fitting_item(fit, item):
     else:
         flag = flags[effects[0]] + str(count)
 
-    item = FittingItem.objects.create(flag=flag, quantity=quantity, type_fk=type_obj,
+    item = FittingItem.objects.create(flag=flag, quantity=quantity if quantity else 1, type_fk=type_obj,
                                       type_id=type_obj.pk, fit=fit)
 
 
