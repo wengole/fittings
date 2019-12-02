@@ -3,6 +3,7 @@ from .tasks import create_fit
 from django.contrib.auth.decorators import login_required
 from django.db.models import Subquery, OuterRef, Case, When, Value, CharField, F, Exists, Count
 from .models import Doctrine, Fitting, Type, FittingItem, DogmaEffect
+from esi.decorators import token_required
 
 
 # Create your views here.
@@ -201,5 +202,38 @@ def delete_fit(request, fit_id):
         return redirect('fittings:dashboard')
 
     fit.delete()
+
+    return redirect('fittings:dashboard')
+
+
+@login_required()
+@token_required(scopes=('esi-fittings.write_fittings.v1',))
+def save_fit(request, token, fit_id):
+    try:
+        fit = Fitting.objects.get(pk=fit_id)
+    except Fitting.DoesNotExist:
+        msg = ('warning', 'Fit not found!')
+
+        return redirect('fitting:dashboard')
+
+    # Build POST payload
+    fit_dict = {
+        'description': fit.description,
+        'name': fit.name,
+        'ship_type_id': fit.ship_type_type_id,
+        'items': []
+    }
+    for item in fit.items.all():
+        f_item = {
+            'flag': item.flag,
+            'quantity': item.quantity,
+            'type_id': item.type_id
+        }
+        fit_dict['items'].append(f_item)
+
+    # Get client
+    c = token.get_esi_client()
+    fit = c.Fittings\
+        .post_characters_character_id_fittings(character_id=token.character_id, fitting=fit_dict).result()
 
     return redirect('fittings:dashboard')
