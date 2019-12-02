@@ -17,11 +17,36 @@
 {% block page_title %}{{ fitting.name }} {% trans "Fit" %}{% endblock %}
 
 {% block fittings_block %}
+    {# modal start #}
+    <div class="modal fade" id="deleteModal" role="dialog" tabindex="-1" aria-labelledby="modalTitle">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="modalTitle">Are you sure?</h4>
+                </div>
+                <div class="modal-body">
+                    <p style="white-space: pre-line">Are you sure you wish to delete this doctrine?
+
+                        <i><strong>This action is permanent.</strong></i></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">No - Close</button>
+                    <a href="{% url 'fittings:delete_fit' fit.pk %}" type="button" class="btn btn-danger">Yes - Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# modal end #}
     <br />
     <div class="col-md-3">
         <div class="panel panel-primary">
             <div class="panel-heading">
                 Fit Information
+                <span data-toggle="modal" data-target="#deleteModal">
+                        <button class="btn btn-xs btn-danger" style="float: right; margin-left: 5px;" data-toggle="tooltip" data-placement="top" title="Delete Fit"><span class="fa fa-times"></span> </button>
+                    </span>
             </div>
             <div class="panel-body">
                 <h3>Doctrines</h3>
@@ -234,6 +259,6 @@
 
 {% block extra_script %}
      $(document).ready(function() {
-
-    });
+        $('[data-toggle="tooltip"]').tooltip();
+     });
 {% endblock %}

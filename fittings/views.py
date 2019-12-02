@@ -189,3 +189,17 @@ def delete_doctrine(request, doctrine_id):
     doctrine.delete()
 
     return redirect('fittings:dashboard')
+
+
+@login_required()
+def delete_fit(request, fit_id):
+    try:
+        fit = Fitting.objects.get(pk=fit_id)
+    except Doctrine.DoesNotExist:
+        msg = ('warning', 'Fit not found!')
+
+        return redirect('fittings:dashboard')
+
+    fit.delete()
+
+    return redirect('fittings:dashboard')
