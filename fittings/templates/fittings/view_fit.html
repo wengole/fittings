@@ -26,7 +26,7 @@
                     <h4 class="modal-title" id="modalTitle">Are you sure?</h4>
                 </div>
                 <div class="modal-body">
-                    <p style="white-space: pre-line">Are you sure you wish to delete this doctrine?
+                    <p style="white-space: pre-line">Are you sure you wish to delete this fit?
 
                         <i><strong>This action is permanent.</strong></i></p>
                 </div>
@@ -49,12 +49,16 @@
                     </span>
             </div>
             <div class="panel-body">
-                <h3>Doctrines</h3>
-                <ul>
-                    {% for doctrine in doctrines %}
-                    <li> <a href="{% url 'fittings:view_doctrine' doctrine.pk %}">{{ doctrine.name }}</a> </li>
-                    {% endfor %}
-                </ul>
+                <dl>
+                    <dt>Doctrines </dt>
+                    <dd>
+                        <ul>
+                            {% for doctrine in doctrines %}
+                            <li> <a href="{% url 'fittings:view_doctrine' doctrine.pk %}">{{ doctrine.name }}</a> </li>
+                            {% endfor %}
+                        </ul>
+                    </dd>
+                </dl>
             </div>
         </div>
     </div>
