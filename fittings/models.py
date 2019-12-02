@@ -85,7 +85,7 @@ class FittingItem(models.Model):
                          'ServiceSlot4', 'ServiceSlot5', 'ServiceSlot6', 'ServiceSlot7', 'SubSystemSlot0',
                          'SubSystemSlot1', 'SubSystemSlot2', 'SubSystemSlot3')
     flag = models.CharField(max_length=25, choices=_flag_enum, default='Invalid')
-    quantity = models.IntegerField(null=True)
+    quantity = models.IntegerField(default=1)
     type_fk = models.ForeignKey(Type, on_delete=models.DO_NOTHING)
     type_id = models.IntegerField()
 
