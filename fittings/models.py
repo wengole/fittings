@@ -65,9 +65,8 @@ class Fitting(models.Model):
     ship_type_type_id = models.IntegerField()
 
     class Meta:
-        default_permissions = (
-            ('access_fittings', 'Can access the fittings module.'),
-        )
+        default_permissions = (())
+        permissions = (('access_fittings', 'Can access the fittings module.'),)
         unique_together = (
             ('ship_type_type_id', 'name'),
         )
@@ -90,7 +89,7 @@ class FittingItem(models.Model):
     type_id = models.IntegerField()
 
     class Meta:
-        default_permissions = ()
+        default_permissions = (())
 
 
 # Doctrine
@@ -103,7 +102,6 @@ class Doctrine(models.Model):
     last_updated = models.DateTimeField(null=True)
 
     class Meta:
-        default_permissions = (
-            ("manage", "Can manage doctrines and fits."),
-        )
+        default_permissions = (())
+        permissions = (("manage", "Can manage doctrines and fits."),)
 
