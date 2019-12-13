@@ -29,3 +29,8 @@ def empty_slots(fittings: dict, slot_type: str):
             return False
     # This slot type is completely empty
     return True
+
+@register.filter
+def break_html_lines(value):
+    return value.replace("<br>","\n").replace("<br />","\n")
+
