@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .tasks import create_fit
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Subquery, OuterRef, Case, When, Value, CharField, F, Exists, Count
 from .models import Doctrine, Fitting, Type, FittingItem, DogmaEffect
 from esi.decorators import token_required
@@ -145,6 +145,7 @@ def view_all_fits(request):
     return render(request, 'fittings/view_all_fits.html', context=ctx)
 
 
+@permission_required('doctrine.manage_fittings')
 @login_required()
 def edit_doctrine(request, doctrine_id):
     ctx = {}
@@ -181,6 +182,7 @@ def edit_doctrine(request, doctrine_id):
     return render(request, 'fittings/edit_doctrine.html', context=ctx)
 
 
+@permission_required('doctrine.manage_fittings')
 @login_required()
 def delete_doctrine(request, doctrine_id):
     try:
@@ -195,6 +197,7 @@ def delete_doctrine(request, doctrine_id):
     return redirect('fittings:dashboard')
 
 
+@permission_required('doctrine.manage_fittings')
 @login_required()
 def delete_fit(request, fit_id):
     try:

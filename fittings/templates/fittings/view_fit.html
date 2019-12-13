@@ -44,9 +44,11 @@
         <div class="panel panel-primary">
             <div class="panel-heading">
                 Fit Information
+                {% if perms.manage_fittings %}
                 <span data-toggle="modal" data-target="#deleteModal">
                         <button class="btn btn-xs btn-danger" style="float: right; margin-left: 5px;" data-toggle="tooltip" data-placement="top" title="Delete Fit"><span class="fa fa-times"></span> </button>
-                    </span>
+                </span>
+                {% endif %}
             </div>
             <div class="panel-body">
                 <dl>
