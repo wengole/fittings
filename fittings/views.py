@@ -21,7 +21,7 @@ def _build_slots(fit):
             subAttbs = (1374, 1375, 1376)
             slots['sub'] = 4
             if t3c:
-                for item in FittingItem.objects.filter(fit=fit):
+                for item in FittingItem.objects.filter(fit=fit).exclude(flag='Cargo'):
                     attbs = item.type_fk.dogma_attributes.filter(attribute_id__in=subAttbs)
                     for attb in attbs:
                         if attb.attribute_id == 1374:
