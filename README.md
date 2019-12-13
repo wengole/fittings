@@ -42,7 +42,7 @@ Fittings offers the following features:
 ![add doctrine](https://i.imgur.com/MXkPI3c.png)
 
 ### View Doctrine
-![view doctrine](https://i.imgur.com/MXkPI3c.png)
+![view doctrine](https://i.imgur.com/FzVCb6S.png)
 
 ## Installation
 ### 1. Install App
