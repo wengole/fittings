@@ -50,7 +50,7 @@
                                     <td> {{ doc.description }} </td>
                                     <td>
                                         {% for fitting in doc_dict|get_item:doc.pk %}
-                                            <img src="https://imageserver.eveonline.com/Type/{{ fitting.ship_type_type_id }}_64.png" class="img-circle" style="height: 32px; width: 32px;" data-toggle="tooltip" data-placement="bottom" title="{{ fitting.ship_type.name }}"/>
+                                            <img src="https://imageserver.eveonline.com/Type/{{ fitting.ship_type_type_id }}_64.png" class="img-circle" style="height: 32px; width: 32px;" data-toggle="tooltip" data-placement="bottom" title="{{ fitting.ship_type.type_name }}"/>
                                         {% endfor %}
                                     </td>
                                 </tr>

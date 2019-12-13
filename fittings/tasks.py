@@ -1,3 +1,9 @@
+import os
+import requests
+import bz2
+import sqlite3
+import re
+
 from .models import Fitting, FittingItem, Type, DogmaEffect, DogmaAttribute
 from esi.clients import esi_client_factory
 from celery import shared_task
@@ -52,9 +58,54 @@ class EftParser:
         return {'ship': ship_type, 'name': fit_name, 'modules': modules, 'cargo_drones': cargo_drone}
 
 
+class SDEConn:
+    def __init__(self):
+        self.conn = sqlite3.connect('sde.db', detect_types=sqlite3.PARSE_COLNAMES)
+        self.cursor = self.conn.cursor()
+        self.col_names = None
+
+    first_cap_re = re.compile('(.)([A-Z][a-z]+)')
+    all_cap_re = re.compile('([a-z0-9])([A-Z])')
+
+    def __snake_case_from_camel(self, name):
+        s1 = self.first_cap_re.sub(r'\1_\2', name)
+        return self.all_cap_re.sub(r'\1_\2', s1).lower()
+
+    def __get_col_names(self):
+        return list(map(lambda x: self.__snake_case_from_camel(x[0]), self.cursor.description))
+
+    def execute_all(self, stmt):
+        c = self.cursor
+        t = c.execute(stmt)
+        self.col_names = self.__get_col_names()
+        all = t.fetchall()
+        named_result = []
+        for row in all:
+            named = {}
+            for idx, col in enumerate(self.col_names):
+                named[col] = row[idx]
+            named_result.append(named)
+        self.close()
+        return named_result
+
+    def execute_one(self, stmt):
+        c = self.cursor
+        t = c.execute(stmt)
+        self.col_names = self.__get_col_names()
+        one = t.fetchone()
+        named_result = {}
+        for idx, col in enumerate(self.col_names):
+            named_result[col] = one[idx]
+        self.close()
+        return named_result
+
+    def close(self):
+        return self.conn.close()
+
+
 def _get_type(type_name):
     try:
-        type_obj = Type.objects.get(name=type_name)
+        type_obj = Type.objects.get(type_name=type_name)
     except:
         type_obj = Type.objects.create_type(type_name)
     return type_obj
@@ -101,102 +152,62 @@ def create_fit(eft_text, description=None):
     for item in parsed_eft['cargo_drones']:
         create_fitting_item(fit, item)
 
+def __dgm_attribute_value(da):
+    vf = da.pop('value_float')
+    vi = da.pop('value_int')
+    if vf is not None:
+        da['value'] = vf
+    elif vi is not None:
+        da['value'] = float(vi)
+
+    return da
 
 @shared_task
 def populate_types():
-    # Get all type ids currently in the db
-    ids = list(Type.objects.all().values_list('type_id', flat=True))
+    # Get list of type_ids in db
+    types = Type.objects.all().values_list('type_id', flat=True)
 
-    # Get all the type IDs.
-    c = esi_client_factory(version='dev')
+    # Get SDE
+    latest_url = 'https://www.fuzzwork.co.uk/dump/sqlite-latest.sqlite.bz2'
 
-    operation = c.Universe.get_universe_types()
-    operation.also_return_response = True
-    _, response = operation.result()
-    pages = int(response.headers['x-pages'])
+    latest_req = requests.get(latest_url)
+    with open('sde.db.bz2', 'wb') as sde:
+        sde.write(latest_req.content)
 
-    for page in range(1, pages + 1):
-        types_page.delay(page, ids)
+    open('sde.db', 'wb').write(bz2.open('sde.db.bz2', 'rb').read())
 
+    # Get Types from SDE
+    tps = SDEConn().execute_all("select typeID, groupID, typeName, description, mass, volume, capacity, portionSize,"
+                                " published, marketGroupID, iconID, graphicID from invTypes;")
 
-def __get_types_and_dogma_esi(id_list):
-    c = esi_client_factory(version='dev')
+    if len(types) > 0:
+        objs = [Type(**tp) for tp in tps if tp['type_id'] in types]
+        Type.objects.bulk_update(objs, ['type_name', 'description', 'group_id', 'published',
+                                        'mass', 'capacity', 'volume', 'packaged_volume',
+                                        'portion_size', 'radius', 'graphic_id', 'icon_id',
+                                        'market_group_id'], batch_size=500)
 
-    dogma = {}
-    types = []
-    for type_id in id_list:
-        try:
-            type_result = c.Universe.get_universe_types_type_id(type_id=type_id).result()
-            if type_result.get('published') is False:
-                # Unpublished items are unlikely to be in fits
-                continue
-            attributes = type_result.pop('dogma_attributes')
-            effects = type_result.pop('dogma_effects')
+        objs = [Type(**tp) for tp in tps if tp['type_id'] not in types]
+        dgmA = []
+        dgmE = []
+        for obj in objs:
+            type_id = obj.type_id
+            dgmA += [DogmaAttribute(**__dgm_attribute_value(da))
+                     for da in SDEConn().execute_all("SELECT * FROM dgmAttributes WHERE typeID = {}".format(type_id))]
+            dgmE += [DogmaEffect(**de)
+                     for de in SDEConn().execute_all("SELECT * FROM dgmEffects WHERE typeID = {}".format(type_id))]
+    else:
+        objs = [Type(**tp) for tp in tps]
+        dgmA = [DogmaAttribute(**__dgm_attribute_value(da)) for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes")]
+        dgmE = [DogmaEffect(**de) for de in SDEConn().execute_all("SELECT * FROM dgmTypeEffects")]
 
-            types.append(Type(**type_result))
-            dogma[type_id] = {'effects': effects, 'attributes': attributes}
-        except:
-            pass
+    Type.objects.bulk_create(objs, batch_size=500)
+    DogmaEffect.objects.bulk_create(dgmE, batch_size=500)
+    DogmaAttribute.objects.bulk_create(dgmA, batch_size=500)
 
-    return types, dogma
-
-
-@shared_task
-def types_page(page, ids):
-    c = esi_client_factory(version='dev')
-
-    type_ids = c.Universe.get_universe_types(page=page).result()
-    updates = [type_id for type_id in type_ids if type_id in ids]
-    type_ids = [type_id for type_id in type_ids if type_id not in ids]
-
-    if len(updates) > 0:
-        update_types.delay(updates)
-
-    types, dogma = __get_types_and_dogma_esi(type_ids)
-    Type.objects.bulk_create(types, batch_size=500)
-
-    attrs = []
-    effects = []
-    for type_id, dogma in dogma.items():
-        if dogma['effects'] is not None:
-            for effect in dogma['effects']:
-                effect['type_model_id'] = type_id
-                effects.append(DogmaEffect(**effect))
-
-        if dogma['attributes'] is not None:
-            for attribute in dogma['attributes']:
-                attribute['type_model_id'] = type_id
-                attrs.append(DogmaAttribute(**attribute))
-
-    DogmaAttribute.objects.bulk_create(attrs, batch_size=500)
-    DogmaEffect.objects.bulk_create(effects, batch_size=500)
-
-
-@shared_task
-def update_types(updates):
-    types, dogma = __get_types_and_dogma_esi(updates)
-    Type.objects.bulk_update(types, ['name', 'description', 'group_id', 'published',
-                                     'mass', 'capacity', 'volume', 'packaged_volume',
-                                     'portion_size', 'radius', 'graphic_id', 'icon_id',
-                                     'market_group_id'], batch_size=500)
-
-    attrs = []
-    effects = []
-    for type_id, dogma in dogma.items():
-        if dogma['effects'] is not None:
-            DogmaEffect.objects.filter(type_model__pk=type_id).delete()
-            for effect in dogma['effects']:
-                effect['type_model_id'] = type_id
-                effects.append(DogmaEffect(**effect))
-
-        if dogma['attributes'] is not None:
-            DogmaAttribute.objects.filter(type_model__pk=type_id).delete()
-            for attribute in dogma['attributes']:
-                attribute['type_model_id'] = type_id
-                attrs.append(DogmaAttribute(**attribute))
-
-    DogmaAttribute.objects.bulk_create(attrs, batch_size=500)
-    DogmaEffect.objects.bulk_create(effects, batch_size=500)
+    # Erase file contents to save space
+    open('sde.db', 'wb').close()
+    open('sde.db.bz2', 'wb').close()
 
 
 

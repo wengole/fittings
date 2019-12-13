@@ -81,7 +81,7 @@ def view_fit(request, fit_id):
         return redirect('fittings:dashboard')
 
     types = Type.objects.filter(type_id=OuterRef('type_id'))
-    items = FittingItem.objects.filter(fit=fit).annotate(item_name=Subquery(types.values('name')))
+    items = FittingItem.objects.filter(fit=fit).annotate(item_name=Subquery(types.values('type_name')))
 
     fittings = {'Cargo': []}
     for item in items:
@@ -114,7 +114,7 @@ def add_doctrine(request):
         return redirect('fittings:dashboard')
 
     fits = Fitting.objects.all()
-    ships = Fitting.objects.order_by('ship_type').values('ship_type', 'ship_type__name')\
+    ships = Fitting.objects.order_by('ship_type').values('ship_type', 'ship_type__type_name')\
         .annotate(a=Count('ship_type'))
     ctx['fittings'] = fits
     ctx['ships'] = ships
@@ -172,6 +172,9 @@ def edit_doctrine(request, doctrine_id):
             doctrine.fittings.add(fit)
         return redirect('fittings:view_doctrine', doctrine_id)
 
+    ships = Fitting.objects.order_by('ship_type').values('ship_type', 'ship_type__type_name') \
+        .annotate(a=Count('ship_type'))
+    ctx['ships'] = ships
     ctx['doctrine'] = doctrine
     ctx['doc_fits'] = doctrine.fittings.all()
     ctx['fits'] = Fitting.objects.exclude(pk__in=ctx['doc_fits']).all()

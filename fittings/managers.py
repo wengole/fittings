@@ -15,6 +15,8 @@ class TypeManager(models.Manager):
         _id = self.__get_type_id(self, type_name)
         c = esi_client_factory()
         type_result = c.Universe.get_universe_types_type_id(type_id=_id).result()
+        type_name = type_result.pop('name')
+        type_result['type_name'] = type_name
         attributes = type_result.pop('dogma_attributes')
         effects = type_result.pop('dogma_effects')
 
@@ -34,12 +36,12 @@ class TypeManager(models.Manager):
 class DogmaAttributeManager(models.Manager):
     def bulk_attributes(self, attributes, type_pk):
         for attribute in attributes:
-            attribute['type_model_id'] = type_pk
+            attribute['type_id'] = type_pk
             att = self.create(**attribute)
 
 
 class DogmaEffectManager(models.Manager):
     def bulk_effects(self, effects, type_pk):
         for effect in effects:
-            effect['type_model_id'] = type_pk
+            effect['type_id'] = type_pk
             eff = self.create(**effect)

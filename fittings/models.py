@@ -5,7 +5,7 @@ from .managers import TypeManager, DogmaAttributeManager, DogmaEffectManager
 
 # Type Model
 class Type(models.Model):
-    name = models.CharField(max_length=500)
+    type_name = models.CharField(max_length=500)
     type_id = models.BigIntegerField(primary_key=True)
     group_id = models.IntegerField()
     published = models.BooleanField(default=False)
@@ -33,7 +33,7 @@ class DogmaAttribute(models.Model):
     # 182 | 183 | 184 --- Req Skill 1/2/3
     # 277 - Req. Skill 1 Lvl | 278 | 279 -- Req Skill 1/2 Lvl
     # 1374 - HiSlotModifier | 1375 - MedSlotModifier | 1376 - RigSlotModifier
-    type_model = models.ForeignKey(Type, on_delete=models.DO_NOTHING, related_name='dogma_attributes')
+    type = models.ForeignKey(Type, on_delete=models.DO_NOTHING, related_name='dogma_attributes')
     attribute_id = models.IntegerField()
     value = models.FloatField()
 
@@ -47,7 +47,7 @@ class DogmaAttribute(models.Model):
 class DogmaEffect(models.Model):
     # 11 - Low Power | 12 - High Power | 13 - Med Power
     # 2663 - Rig Slot | 3772 - Subsystem | 6306 - Service Slot
-    type_model = models.ForeignKey(Type, on_delete=models.DO_NOTHING, related_name='dogma_effects')
+    type = models.ForeignKey(Type, on_delete=models.DO_NOTHING, related_name='dogma_effects')
     effect_id = models.IntegerField()
     is_default = models.BooleanField()
 
