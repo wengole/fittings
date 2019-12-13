@@ -41,6 +41,9 @@ class DogmaAttribute(models.Model):
 
     class Meta:
         default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(fields=('attribute_id', 'type'), name='unique_type_and_attribute_id')
+        ]
 
 
 # Dogma Effect
@@ -55,6 +58,9 @@ class DogmaEffect(models.Model):
 
     class Meta:
         default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(fields=('effect_id', 'type'), name='unique_type_and_effect_id')
+        ]
 
 
 # Fitting
