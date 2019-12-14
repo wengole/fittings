@@ -40,7 +40,7 @@
                             <li> <a href="{% url 'fittings:view_all_fits' %}">View All Fits</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        {% if perms.fittings.manage_fittings %}
+                        {% if perms.fittings.manage %}
                             <li> <a href="{% url 'fittings:add_fit' %}">Add Fitting</a></li>
                             <li> <a href="{% url 'fittings:add_doctrine' %}">Add Doctrine</a></li>
                         {% endif %}
