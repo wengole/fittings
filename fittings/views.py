@@ -43,6 +43,7 @@ def _build_slots(fit):
     return slots
 
 
+@permission_required('fittings.access_fittings')
 @login_required()
 def dashboard(request):
     msg = None
@@ -50,11 +51,12 @@ def dashboard(request):
     doc_dict = {}
     docs = Doctrine.objects.all()
     for doc in docs:
-        doc_dict[doc.pk] = doc.fittings.all()
+        doc_dict[doc.pk] = doc.fittings.all().values('ship_type', 'ship_type_type_id').distinct()
     ctx = {'msg': msg, 'docs': docs, 'doc_dict': doc_dict}
     return render(request, 'fittings/dashboard.html', context=ctx)
 
 
+@permission_required('fittings.access_fittings')
 @login_required()
 def add_fit(request):
     msg = None
@@ -70,6 +72,7 @@ def add_fit(request):
     return render(request, 'fittings/add_fit.html', context=ctx)
 
 
+@permission_required('fittings.access_fittings')
 @login_required()
 def view_fit(request, fit_id):
     ctx = {}
@@ -97,6 +100,7 @@ def view_fit(request, fit_id):
     return render(request, 'fittings/view_fit.html', context=ctx)
 
 
+@permission_required('fittings.access_fittings')
 @login_required()
 def add_doctrine(request):
     ctx = {}
@@ -121,6 +125,7 @@ def add_doctrine(request):
     return render(request, 'fittings/add_doctrine.html', context=ctx)
 
 
+@permission_required('fittings.access_fittings')
 @login_required()
 def view_doctrine(request, doctrine_id):
     ctx = {}
@@ -136,6 +141,7 @@ def view_doctrine(request, doctrine_id):
     return render(request, 'fittings/view_doctrine.html', context=ctx)
 
 
+@permission_required('fittings.access_fittings')
 @login_required()
 def view_all_fits(request):
     ctx = {}
@@ -212,6 +218,7 @@ def delete_fit(request, fit_id):
     return redirect('fittings:dashboard')
 
 
+@permission_required('fittings.access_fittings')
 @login_required()
 @token_required(scopes=('esi-fittings.write_fittings.v1',))
 def save_fit(request, token, fit_id):
