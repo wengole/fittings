@@ -54,10 +54,10 @@
                                 <div class="col-sm-10" style="margin-top: 5px; margin-bottom: 5px;">
                                     <select multiple="multiple" id="fitSelect" name="fitSelect">
                                         {% for fit in doc_fits %}
-                                            <option value="{{ fit.pk }}" selected>{{ fit.name }} ({{ fit.ship_type.name }})</option>
+                                            <option value="{{ fit.pk }}" selected>{{ fit.name }} ({{ fit.ship_type.type_name }})</option>
                                         {% endfor %}
                                         {% for fit in fits %}
-                                            <option value="{{ fit.pk }}">{{ fit.name }} ({{fit.ship_type.name}})</option>
+                                            <option value="{{ fit.pk }}">{{ fit.name }} ({{fit.ship_type.type_name}})</option>
                                         {% endfor %}
                                     </select>
                                 </div>
