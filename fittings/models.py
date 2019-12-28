@@ -70,6 +70,9 @@ class Fitting(models.Model):
     ship_type = models.ForeignKey(Type, on_delete=models.DO_NOTHING)
     ship_type_type_id = models.IntegerField()
 
+    def __str__(self):
+        return "{} ({})".format(self.ship_type.type_name, self.name)
+
     class Meta:
         default_permissions = (())
         permissions = (('access_fittings', 'Can access the fittings module.'),)
