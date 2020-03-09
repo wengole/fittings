@@ -182,6 +182,7 @@ def populate_types():
 
     if len(types) > 0:
         objs = [Type(**tp) for tp in tps if tp['type_id'] in types]
+
         Type.objects.bulk_update(objs, ['type_name', 'description', 'group_id', 'published',
                                         'mass', 'capacity', 'volume', 'packaged_volume',
                                         'portion_size', 'radius', 'graphic_id', 'icon_id',
@@ -196,6 +197,20 @@ def populate_types():
                      for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes WHERE typeID = {}".format(type_id))]
             dgmE += [DogmaEffect(**de)
                      for de in SDEConn().execute_all("SELECT * FROM dgmTypeEffects WHERE typeID = {}".format(type_id))]
+
+        # Lets account for an error importing dgm
+        dA = DogmaAttribute.objects.all().values_list("type_id", flat=True)
+        dE = DogmaEffect.objects.all().values_list("type_id", flat=True)
+
+        # This is a list of type IDs for all types missing from dogmaAttributes or dogmaEffects
+        dETypes = [type_ for type_ in types if type_ not in dE]
+        dATypes = [type_ for type_ in types if type_ not in dA]
+        for dAType in dATypes:
+            dgmA += [DogmaAttribute(**__dgm_attribute_value(da))
+                     for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes WHERE typeID = {}".format(dAType))]
+        for dEType in dETypes:
+            dgmE += [DogmaEffect(**de)
+                     for de in SDEConn().execute_all("SELECT * FROM dgmTypeEffects WHERE typeID = {}".format(dEType))]
     else:
         objs = [Type(**tp) for tp in tps]
         dgmA = [DogmaAttribute(**__dgm_attribute_value(da)) for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes")]
