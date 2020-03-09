@@ -193,9 +193,9 @@ def populate_types():
         for obj in objs:
             type_id = obj.type_id
             dgmA += [DogmaAttribute(**__dgm_attribute_value(da))
-                     for da in SDEConn().execute_all("SELECT * FROM dgmAttributes WHERE typeID = {}".format(type_id))]
+                     for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes WHERE typeID = {}".format(type_id))]
             dgmE += [DogmaEffect(**de)
-                     for de in SDEConn().execute_all("SELECT * FROM dgmEffects WHERE typeID = {}".format(type_id))]
+                     for de in SDEConn().execute_all("SELECT * FROM dgmTypeEffects WHERE typeID = {}".format(type_id))]
     else:
         objs = [Type(**tp) for tp in tps]
         dgmA = [DogmaAttribute(**__dgm_attribute_value(da)) for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes")]
