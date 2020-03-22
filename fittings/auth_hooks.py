@@ -10,7 +10,7 @@ class FittingMenu(MenuItemHook):
                               navactive=['fittings:'])
 
     def render(self, request):
-        if request.user.has_perm('fitting.access_fittings'):
+        if request.user.has_perm('fittings.access_fittings'):
             return MenuItemHook.render(self, request)
         return ''
 
