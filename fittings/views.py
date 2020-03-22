@@ -151,7 +151,7 @@ def view_all_fits(request):
     return render(request, 'fittings/view_all_fits.html', context=ctx)
 
 
-@permission_required('doctrine.manage')
+@permission_required('fittings.manage')
 @login_required()
 def edit_doctrine(request, doctrine_id):
     ctx = {}
@@ -188,7 +188,7 @@ def edit_doctrine(request, doctrine_id):
     return render(request, 'fittings/edit_doctrine.html', context=ctx)
 
 
-@permission_required('doctrine.manage')
+@permission_required('fittings.manage')
 @login_required()
 def delete_doctrine(request, doctrine_id):
     try:
@@ -203,7 +203,7 @@ def delete_doctrine(request, doctrine_id):
     return redirect('fittings:dashboard')
 
 
-@permission_required('doctrine.manage')
+@permission_required('fittings.manage')
 @login_required()
 def delete_fit(request, fit_id):
     try:
