@@ -9,10 +9,10 @@ class FittingMenu(MenuItemHook):
                               'fa fa-list-alt fa-fw', 'fittings:dashboard',
                               navactive=['fittings:'])
 
-        def render(self, request):
-            if request.user.has_perm('fittings.access_fittings'):
-                return MenuItemHook.render(self, request)
-            return ''
+    def render(self, request):
+        if request.user.has_perm('fitting.access_fittings'):
+            return MenuItemHook.render(self, request)
+        return ''
 
 
 @hooks.register('menu_item_hook')
