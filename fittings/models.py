@@ -1,6 +1,7 @@
 from django.db import models
 from model_utils import Choices
 from .managers import TypeManager, DogmaAttributeManager, DogmaEffectManager
+from django.db.models import Subquery, OuterRef, CharField
 
 
 # Type Model
@@ -72,6 +73,56 @@ class Fitting(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.ship_type.type_name, self.name)
+        
+    def eft(self):
+        types = Type.objects.filter(type_id=OuterRef('type_id'))
+        items = FittingItem.objects.filter(fit=self).annotate(item_name=Subquery(types.values('type_name')))
+
+        eft = '[' + self.ship_type.type_name + ', ' + self.name + ']\n\n'
+
+        temp = { 'Cargo': [] }
+        
+        slots = [
+            { 'key': 'LoSlot', 'range': 8 },
+            { 'key': 'MedSlot', 'range': 8 },
+            { 'key': 'HiSlot', 'range': 8 },
+            { 'key': 'RigSlot', 'range': 3 },
+            { 'key': 'SubSystemSlot', 'range': 4 },
+            { 'key': 'ServiceSlot', 'range': 8 }
+        ]
+        
+        for item in items:
+            if item.flag == 'Cargo':
+                temp['Cargo'].append(item)
+            else:
+                temp[item.flag] = item.item_name
+
+        for slot in slots:
+            isEmpty = True
+            for i in range(0, slot['range']):
+                key = slot['key'] + str(i)
+                if key in temp:
+                    eft += temp[key] + '\n'
+                    isEmpty = False
+            if isEmpty == False:
+                eft += '\n'
+
+
+        slots = [
+            'FighterBay',
+            'DroneBay',
+            'Cargo'
+        ]
+
+        for slot in slots:
+            if slot in temp:
+                eft += '\n\n'
+                for item in temp[slot]:
+                    eft += item.item_name + ' x' + str(item.quantity) + '\n'
+
+        eft += '\n'
+        
+        return eft
 
     class Meta:
         default_permissions = (())
