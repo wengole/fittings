@@ -42,7 +42,6 @@ def _build_slots(fit):
 
     return slots
 
-
 @permission_required('fittings.access_fittings')
 @login_required()
 def dashboard(request):
