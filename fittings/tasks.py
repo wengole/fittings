@@ -47,7 +47,7 @@ class EftParser:
                     quantity = line.split()[-1]  # Quantity will always be the last element, if it is there.
 
                     if 'x' in quantity and quantity[1:].isdigit():
-                        item_name = line.strip(quantity).strip()
+                        item_name = line.split(quantity)[0].strip()
                         cargo_drone.append({'name': item_name, 'quantity': int(quantity.strip('x'))})
                     elif end_fit is True:
                         cargo_drone.append({'name': line.strip(), 'quantity': 1})
