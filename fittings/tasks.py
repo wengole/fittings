@@ -14,49 +14,102 @@ class EftParser:
         self.eft_lines = eft_text.strip().splitlines()
 
     def parse(self):
+        sections = []
+        for section in _importSectionIter(self.eft_lines):
+            sections.append(section)
+
         modules = []
-        cargo_drone = []
+        cargo = []
+        drone_bay = []
+        fighter_bay = []
         ship_type = ''
         fit_name = ''
         counter = 0  # Slot flag number
         last_line = ''
         end_fit = False
 
-        for line in self.eft_lines:
-            if last_line == '' and line == '':
-                end_fit = True
-
-            last_line = line
-            if line == '':
-                counter = 0
-                continue
-
-            if line.startswith('['):
-                if ', ' in line:
-                    ship_type, fit_name = line[1:-1].split(', ')
-                    continue
-
-                if 'empty' in line.strip('[]').lower():
-                    continue
-
+        for section in sections:
+            counter = 0;
+            if section.isDroneBay():
+                for line in section.lines:
+                    quantity = line.split()[-1]
+                    item_name = line.split(quantity)[0].strip()
+                    drone_bay.append({'name': item_name, 'quantity': int(quantity.strip('x')), 'section_name': 'DroneBay'})
+            elif section.isFighterBay():
+                for line in section.lines:
+                    quantity = line.split()[-1]
+                    item_name = line.split(quantity)[0].strip()
+                    fighter_bay.append({'name': item_name, 'quantity': int(quantity.strip('x')), 'section_name': 'FighterBay'})
             else:
-                if ',' in line:
-                    module, charge = line.split(',')
-                    modules.append({'name': module, 'charge': charge.strip(), 'count': counter})
-                else:
-                    quantity = line.split()[-1]  # Quantity will always be the last element, if it is there.
+                for line in section.lines:
+                    if line.startswith('['):
+                        if ', ' in line:
+                            ship_type, fit_name = line[1:-1].split(', ')
+                            continue
 
-                    if 'x' in quantity and quantity[1:].isdigit():
-                        item_name = line.split(quantity)[0].strip()
-                        cargo_drone.append({'name': item_name, 'quantity': int(quantity.strip('x'))})
-                    elif end_fit is True:
-                        cargo_drone.append({'name': line.strip(), 'quantity': 1})
+                        if 'empty' in line.strip('[]').lower():
+                            continue
                     else:
-                        modules.append({'name': line.strip(), 'charge': '', 'count': counter})
-            counter += 1
+                        if ',' in line:
+                            module, charge = line.split(',')
+                            modules.append({'name': module, 'charge': charge.strip(), 'count': counter})
+                        else:
+                            
+                            quantity = line.split()[-1]  # Quantity will always be the last element, if it is there.
 
-        return {'ship': ship_type, 'name': fit_name, 'modules': modules, 'cargo_drones': cargo_drone}
+                            if 'x' in quantity and quantity[1:].isdigit():
+                                item_name = line.split(quantity)[0].strip()
+                                cargo.append({'name': item_name, 'quantity': int(quantity.strip('x')), 'section_name': 'Cargo'})
+                            elif end_fit is True:
+                                cargo.append({'name': line.strip(), 'quantity': 1, 'section_name': 'Cargo'})
+                            else:
+                                modules.append({'name': line.strip(), 'charge': '', 'count': counter})
+                    counter += 1
 
+        return {'ship': ship_type, 'name': fit_name, 'modules': modules, 'cargo': cargo, 'drone_bay': drone_bay, 'fighter_bay': fighter_bay}
+
+def _importSectionIter(lines):
+    section = Section()
+    for line in lines:
+        if not line:
+            if section.lines:
+                yield section
+                section = Section()
+        else:
+            section.lines.append(line)
+    if section.lines:
+        yield section
+
+class Section:    
+    def __init__(self):
+        self.lines = []
+
+    def isDroneBay(self):
+
+        types = []
+        for line in self.lines:
+            if line.startswith('['):
+                return False
+            quantity = line.split()[-1]
+            if 'x' in quantity and quantity[1:].isdigit():
+                types.append(_get_type(line.split(quantity)[0].strip()))
+            else:
+                types.append(_get_type(line.strip()))
+        return all(type is not None and type.category_id == 18 for type in types)
+
+    def isFighterBay(self):
+        types = []
+        for line in self.lines:
+            if line.startswith('['):
+                return False
+            quantity = line.split()[-1]
+            if 'x' in quantity and quantity[1:].isdigit():
+                types.append(_get_type(line.split(quantity)[0].strip()))
+            else:
+                types.append(_get_type(line.strip()))
+        return all(type is not None and type.category_id == 87 for type in types)
+
+            
 
 class SDEConn:
     def __init__(self):
@@ -125,7 +178,7 @@ def create_fitting_item(fit, item):
     effects = type_obj.dogma_effects.filter(effect_id__in=flags).values_list('effect_id', flat=True)
     effects = list(effects)
     if count is None:
-        flag = 'Cargo'
+        flag = item['section_name']
         quantity = item['quantity']
     else:
         flag = flags[effects[0]] + str(count)
@@ -149,8 +202,14 @@ def create_fit(eft_text, description=None):
     for module in parsed_eft['modules']:
         create_fitting_item(fit, module)
 
-    for item in parsed_eft['cargo_drones']:
+    for item in parsed_eft['cargo']:
         create_fitting_item(fit, item)
+
+    for drone in parsed_eft['drone_bay']:
+        create_fitting_item(fit, drone)
+
+    for fighter in parsed_eft['fighter_bay']:
+        create_fitting_item(fit, fighter)
 
 def __dgm_attribute_value(da):
     vf = da.pop('value_float')
@@ -180,18 +239,26 @@ def populate_types():
     tps = SDEConn().execute_all("select typeID, groupID, typeName, description, mass, volume, capacity, portionSize,"
                                 " published, marketGroupID, iconID, graphicID from invTypes;")
 
+    groups = SDEConn().execute_all("select groupID, categoryID from invGroups;")                            
+
     if len(types) > 0:
         objs = [Type(**tp) for tp in tps if tp['type_id'] in types]
 
+        for obj in objs:
+            group = next((group for group in groups if group['group_id'] == obj.group_id), None)
+            obj.category_id = None if group is None else group['category_id'] 
+        
         Type.objects.bulk_update(objs, ['type_name', 'description', 'group_id', 'published',
                                         'mass', 'capacity', 'volume', 'packaged_volume',
                                         'portion_size', 'radius', 'graphic_id', 'icon_id',
-                                        'market_group_id'], batch_size=500)
+                                        'market_group_id', 'category_id'], batch_size=500)
 
         objs = [Type(**tp) for tp in tps if tp['type_id'] not in types]
         dgmA = []
         dgmE = []
         for obj in objs:
+            group = next((group for group in groups if group['group_id'] == obj.group_id), None)
+            obj.category_id = None if group is None else group['category_id']
             type_id = obj.type_id
             dgmA += [DogmaAttribute(**__dgm_attribute_value(da))
                      for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes WHERE typeID = {}".format(type_id))]
@@ -216,6 +283,8 @@ def populate_types():
         dgmE = []
         objs = [Type(**tp) for tp in tps]
         for obj in objs:
+            group = next((group for group in groups if group['group_id'] == obj.group_id), None)
+            obj.category_id = None if group is None else group['category_id'] 
             type_id = obj.type_id
             dgmA += [DogmaAttribute(**__dgm_attribute_value(da)) for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes WHERE typeID = {}".format(type_id))]
             dgmE += [DogmaEffect(**de) for de in SDEConn().execute_all("SELECT * FROM dgmTypeEffects WHERE typeID = {}".format(type_id))]
