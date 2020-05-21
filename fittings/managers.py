@@ -20,28 +20,28 @@ class TypeManager(models.Manager):
         attributes = type_result.pop('dogma_attributes')
         effects = type_result.pop('dogma_effects')
 
-        obj = self.create(**type_result)
+        obj = self.update_or_create(type_id=_id, defaults=type_result)
 
         # Handle Attributes
         from .models import DogmaAttribute
-        DogmaAttribute.objects.bulk_attributes(attributes, obj.pk)
+        DogmaAttribute.objects.bulk_attributes(attributes, obj[0].pk)
 
         # Handle Effects
         from .models import DogmaEffect
-        DogmaEffect.objects.bulk_effects(effects, obj.pk)
+        DogmaEffect.objects.bulk_effects(effects, obj[0].pk)
 
-        return obj
+        return obj[0]
 
 
 class DogmaAttributeManager(models.Manager):
     def bulk_attributes(self, attributes, type_pk):
         for attribute in attributes:
             attribute['type_id'] = type_pk
-            att = self.create(**attribute)
+            att = self.update_or_create(type_id=type_pk, attribute_id=attribute['attribute_id'], defaults=attribute)
 
 
 class DogmaEffectManager(models.Manager):
     def bulk_effects(self, effects, type_pk):
         for effect in effects:
             effect['type_id'] = type_pk
-            eff = self.create(**effect)
+            eff = self.update_or_create(type_id=type_pk, effect_id=effect['effect_id'], defaults=effect)

@@ -12,7 +12,7 @@ class Type(models.Model):
     published = models.BooleanField(default=False)
     mass = models.FloatField(null=True)
     capacity = models.FloatField(null=True)
-    description = models.CharField(max_length=5000, null=False)  # Not sure of the actual max.
+    description = models.CharField(max_length=5000, null=True)  # Not sure of the actual max.
     volume = models.FloatField(null=True)
     packaged_volume = models.FloatField(null=True)
     portion_size = models.IntegerField(null=True)

@@ -47,7 +47,7 @@ class EftParser:
                     quantity = line.split()[-1]  # Quantity will always be the last element, if it is there.
 
                     if 'x' in quantity and quantity[1:].isdigit():
-                        item_name = line.strip(quantity).strip()
+                        item_name = line.split(quantity)[0].strip()
                         cargo_drone.append({'name': item_name, 'quantity': int(quantity.strip('x'))})
                     elif end_fit is True:
                         cargo_drone.append({'name': line.strip(), 'quantity': 1})
@@ -212,9 +212,13 @@ def populate_types():
             dgmE += [DogmaEffect(**de)
                      for de in SDEConn().execute_all("SELECT * FROM dgmTypeEffects WHERE typeID = {}".format(dEType))]
     else:
+        dgmA = []
+        dgmE = []
         objs = [Type(**tp) for tp in tps]
-        dgmA = [DogmaAttribute(**__dgm_attribute_value(da)) for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes")]
-        dgmE = [DogmaEffect(**de) for de in SDEConn().execute_all("SELECT * FROM dgmTypeEffects")]
+        for obj in objs:
+            type_id = obj.type_id
+            dgmA += [DogmaAttribute(**__dgm_attribute_value(da)) for da in SDEConn().execute_all("SELECT * FROM dgmTypeAttributes WHERE typeID = {}".format(type_id))]
+            dgmE += [DogmaEffect(**de) for de in SDEConn().execute_all("SELECT * FROM dgmTypeEffects WHERE typeID = {}".format(type_id))]
 
     Type.objects.bulk_create(objs, batch_size=500)
     DogmaEffect.objects.bulk_create(dgmE, batch_size=500)
