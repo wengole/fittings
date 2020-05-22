@@ -5,8 +5,9 @@ import sqlite3
 import re
 
 from .models import Fitting, FittingItem, Type, DogmaEffect, DogmaAttribute
-from esi.clients import esi_client_factory
+from .providers import esi
 from celery import shared_task
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class EftParser:
@@ -101,6 +102,25 @@ def create_fit(eft_text, description=None):
 
     fit = __create_fit(parsed_eft['ship'], parsed_eft['name'], description)
 
+    type_names = [x['name'] for x in parsed_eft['modules']]
+    type_names += [x['name'] for x in parsed_eft['cargo_drones']]
+    type_names = list(set(type_names))
+
+    # Get a list of types missing from the db
+    types = Type.objects.filter(type_name__in=type_names).values_list('type_name', flat=True)
+
+    missing = [x for x in type_names if x not in types]
+
+    # Create missing types
+    _processes = []
+    with ThreadPoolExecutor(max_workers=50) as ex:
+        for name in missing:
+            _processes.append(ex.submit(Type.objects.create_type, name))
+
+    for item in as_completed(_processes):
+        _ = item.result()
+
+    # Create the fitting items
     for module in parsed_eft['modules']:
         create_fitting_item(fit, module)
 
