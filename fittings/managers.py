@@ -1,19 +1,19 @@
 from django.db import models
-from esi.clients import esi_client_factory
+from .providers import esi
 
 
 class TypeManager(models.Manager):
     @staticmethod
     def __get_type_id(self, type_name):
         payload = [type_name]
-        c = esi_client_factory()
+        c = esi.client
         ids = c.Universe.post_universe_ids(names=payload).result()
         _id = ids.get("inventory_types")[0].get("id")
         return _id
 
     def create_type(self, type_name):
         _id = self.__get_type_id(self, type_name)
-        c = esi_client_factory()
+        c = esi.client
         type_result = c.Universe.get_universe_types_type_id(type_id=_id).result()
         type_name = type_result.pop('name')
         type_result['type_name'] = type_name
