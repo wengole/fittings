@@ -188,3 +188,20 @@ def create_fit(eft_text, description=None):
         create_fitting_item(fit, item)
 
     logger.info("Done creating fit.")
+
+
+@shared_task
+def missing_group_type_fix():
+    logger.info("Started updating groups for preexisting types.")
+    # Grab all types with a null group field.
+    types = Type.objects.filter(group=None)
+
+    _processes = []
+    with ThreadPoolExecutor(max_workers=50) as ex:
+        for _type in types:
+            _processes.append(ex.submit(Type.objects.create_type, _type.type_name))
+
+    for item in as_completed(_processes):
+        _ = item.result()
+
+    logger.info("Done updating groups.")
