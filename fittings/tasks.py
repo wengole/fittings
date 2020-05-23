@@ -70,7 +70,9 @@ class EftParser:
                                 modules.append({'name': line.strip(), 'charge': '', 'count': counter})
                     counter += 1
 
-        return {'ship': ship_type, 'name': fit_name, 'modules': modules, 'cargo': cargo, 'drone_bay': drone_bay, 'fighter_bay': fighter_bay}
+        return {'ship': ship_type, 'name': fit_name, 'modules': modules, 'cargo': cargo, 'drone_bay': drone_bay,
+                'fighter_bay': fighter_bay}
+
 
 def _importSectionIter(lines):
     section = Section()
@@ -83,6 +85,7 @@ def _importSectionIter(lines):
             section.lines.append(line)
     if section.lines:
         yield section
+
 
 class Section:    
     def __init__(self):
@@ -99,7 +102,7 @@ class Section:
                 types.append(_get_type(line.split(quantity)[0].strip()))
             else:
                 types.append(_get_type(line.strip()))
-        return all(type is not None and type.category_id == 18 for type in types)
+        return all(_type is not None and _type.group.category_id == 18 for _type in types)
 
     def isFighterBay(self):
         types = []
@@ -111,9 +114,7 @@ class Section:
                 types.append(_get_type(line.split(quantity)[0].strip()))
             else:
                 types.append(_get_type(line.strip()))
-        return all(type is not None and type.category_id == 87 for type in types)
-
-            
+        return all(_type is not None and _type.group.category_id == 87 for _type in types)
 
 
 def _get_type(type_name):
@@ -152,7 +153,7 @@ def create_fit(eft_text, description=None):
     parsed_eft = EftParser(eft_text).parse()
 
     logger.info("Creating fit.")
-    logger.degug(f"Fit name: {parsed_eft['name']}, Type: {parsed_eft['ship']}")
+    logger.debug(f"Fit name: {parsed_eft['name']}, Type: {parsed_eft['ship']}")
 
     def __create_fit(ship_type, name, description):
         type_obj = _get_type(ship_type)
@@ -163,7 +164,9 @@ def create_fit(eft_text, description=None):
     fit = __create_fit(parsed_eft['ship'], parsed_eft['name'], description)
 
     type_names = [x['name'] for x in parsed_eft['modules']]
-    type_names += [x['name'] for x in parsed_eft['cargo_drones']]
+    type_names += [x['name'] for x in parsed_eft['cargo']]
+    type_names += [x['name'] for x in parsed_eft['drone_bay']]
+    type_names += [x['name'] for x in parsed_eft['fighter_bay']]
     type_names = list(set(type_names))
 
     # Get a list of types missing from the db
@@ -184,7 +187,13 @@ def create_fit(eft_text, description=None):
     for module in parsed_eft['modules']:
         create_fitting_item(fit, module)
 
-    for item in parsed_eft['cargo_drones']:
+    for item in parsed_eft['cargo']:
+        create_fitting_item(fit, item)
+
+    for item in parsed_eft['drone_bay']:
+        create_fitting_item(fit, item)
+
+    for item in parsed_eft['fighter_bay']:
         create_fitting_item(fit, item)
 
     logger.info("Done creating fit.")
