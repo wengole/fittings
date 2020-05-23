@@ -1,14 +1,42 @@
 from django.db import models
 from model_utils import Choices
-from .managers import TypeManager, DogmaAttributeManager, DogmaEffectManager
+from .managers import TypeManager, DogmaAttributeManager, DogmaEffectManager, ItemCategoryManager, ItemGroupManager
 from django.db.models import Subquery, OuterRef, CharField
+
+# TODO: Investigate effect of changing group_id to FK from integer field.
+
+
+# Category Model
+class ItemCategory(models.Model):
+    category_id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=250)
+    published = models.BooleanField(default=True)
+
+    objects = ItemCategoryManager()
+
+    class Meta:
+        default_permissions = ()
+
+
+# Group Model
+class ItemGroup(models.Model):
+    group_id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=250)
+    category = models.ForeignKey(ItemCategory, on_delete=models.CASCADE)
+    published = models.BooleanField(default=True)
+
+    objects = ItemGroupManager()
+
+    class Meta:
+        default_permissions = ()
 
 
 # Type Model
 class Type(models.Model):
     type_name = models.CharField(max_length=500)
     type_id = models.BigIntegerField(primary_key=True)
-    group_id = models.IntegerField()
+    # group_id = models.IntegerField()    # This is essentially a FK field.
+    group = models.ForeignKey(ItemGroup, on_delete=models.CASCADE, null=True)
     published = models.BooleanField(default=False)
     mass = models.FloatField(null=True)
     capacity = models.FloatField(null=True)
