@@ -69,35 +69,8 @@ $ python manage.py collectstatic
 Restart your supervisor tasks.
 
 ### 4. Populate Types
-This can be done one of two ways, either from the command line or from the admin page.
-
-#### 4.1 Command Line
-Run the following commands from the command line to populate types.
-
-*Make sure you are running with your allianceauth virtual environment activated and your auth directory (the one
-containing `manage.py`) is your current directory!*
-```bash
-$ python manage.py shell
->>> from fittings.tasks import populate_types
->>> populate_types()
->>> exit()
-```
-
-You are now all set to add fittings and doctrines!
-
-#### 4.2 Admin Interface
- 1. Navigate to `{your auth url}/admin/django_celery_beat/periodictask/` and click the `Add Periodic Task` button at the top
-right corner of the page.
- 2. Give your task a name, it doesn't matter what it is, so long as you know what it is.
- 3. From the `Task (registered)` dropdown select `fittings.tasks.populate_types`
- 4. Uncheck the `Enabled` tick box.
- 5. In the `Schedule` section, select any option from any of the dropdowns.
- 6. Click `Save`
- 7. You should now be back on the page listing all the periodic tasks. Find the one you just created, and check the 
- tick box next to it's name.
- 8. From the `Action` dropdown at the top of the table, select `Run Selected Tasks` and click the `Go` button.
- 9. The page should reload, with a green banner at the top saying `1 task was successfully run`. Now just wait a few minutes
- while the database populates all the types and related info and you can then start creating your fits and doctrines. 
+As of v1.0.0 there is no need to populate types from SDE. This will be done on the fly from
+ESI. 
 
 ## Updating
 To update your existing installation of Fittings first enable your virtual environment.
@@ -121,3 +94,7 @@ Permission | Description
 -- | --
 `fitting.access_fittings` | This permission gives users access to the plugin.
 `doctrine.manage` | User can add/delete ship fits and doctrines.
+
+## Active Developers
+* [Col Crunch](http://gitlab.com/colcrunch)
+* [Crashtec](https://gitlab.com/huideaki)
