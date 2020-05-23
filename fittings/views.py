@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Subquery, OuterRef, Case, When, Value, CharField, F, Exists, Count
 from .models import Doctrine, Fitting, Type, FittingItem, DogmaEffect
 from esi.decorators import token_required
+from .providers import esi
 
 
 # Create your views here.
@@ -244,8 +245,9 @@ def save_fit(request, token, fit_id):
         fit_dict['items'].append(f_item)
 
     # Get client
-    c = token.get_esi_client()
+    c = esi.client
     fit = c.Fittings\
-        .post_characters_character_id_fittings(character_id=token.character_id, fitting=fit_dict).result()
+        .post_characters_character_id_fittings(character_id=token.character_id, fitting=fit_dict,
+                                               token=token.valid_access_token()).result()
 
     return redirect('fittings:dashboard')
