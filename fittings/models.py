@@ -9,7 +9,6 @@ class Type(models.Model):
     type_name = models.CharField(max_length=500)
     type_id = models.BigIntegerField(primary_key=True)
     group_id = models.IntegerField()
-    category_id = models.IntegerField(null=True)
     published = models.BooleanField(default=False)
     mass = models.FloatField(null=True)
     capacity = models.FloatField(null=True)
