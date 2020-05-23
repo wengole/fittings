@@ -8,6 +8,9 @@ from .models import Fitting, FittingItem, Type, DogmaEffect, DogmaAttribute
 from .providers import esi
 from celery import shared_task
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from allianceauth.services.hooks import get_extension_logger
+
+logger = get_extension_logger(__name__)
 
 
 class EftParser:
@@ -94,6 +97,9 @@ def create_fitting_item(fit, item):
 def create_fit(eft_text, description=None):
     parsed_eft = EftParser(eft_text).parse()
 
+    logger.info("Creating fit.")
+    logger.degug(f"Fit name: {parsed_eft['name']}, Type: {parsed_eft['ship']}")
+
     def __create_fit(ship_type, name, description):
         type_obj = _get_type(ship_type)
         fit = Fitting.objects.create(ship_type=type_obj, ship_type_type_id=type_obj.pk,
@@ -113,7 +119,7 @@ def create_fit(eft_text, description=None):
 
     # Create missing types
     _processes = []
-    with ThreadPoolExecutor(max_workers=50) as ex:
+    with ThreadPoolExecutor(max_workers=50) as ex:  # Number of workers might need to be tweaked over time.
         for name in missing:
             _processes.append(ex.submit(Type.objects.create_type, name))
 
@@ -127,7 +133,4 @@ def create_fit(eft_text, description=None):
     for item in parsed_eft['cargo_drones']:
         create_fitting_item(fit, item)
 
-
-
-
-
+    logger.info("Done creating fit.")
