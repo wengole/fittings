@@ -86,10 +86,15 @@ def view_fit(request, fit_id):
     types = Type.objects.filter(type_id=OuterRef('type_id'))
     items = FittingItem.objects.filter(fit=fit).annotate(item_name=Subquery(types.values('type_name')))
 
-    fittings = {'Cargo': []}
+    fittings = {'Cargo': [], 'FighterBay': [], 'DroneBay': []}
+
     for item in items:
         if item.flag == "Cargo":
             fittings['Cargo'].append(item)
+        elif item.flag == "DroneBay":
+            fittings['DroneBay'].append(item)
+        elif item.flag == "FighterBay":
+            fittings['FighterBay'].append(item)
         else:
             fittings[item.flag] = item
 

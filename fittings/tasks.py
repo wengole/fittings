@@ -18,48 +18,102 @@ class EftParser:
         self.eft_lines = eft_text.strip().splitlines()
 
     def parse(self):
+        sections = []
+        for section in _importSectionIter(self.eft_lines):
+            sections.append(section)
+
         modules = []
-        cargo_drone = []
+        cargo = []
+        drone_bay = []
+        fighter_bay = []
         ship_type = ''
         fit_name = ''
         counter = 0  # Slot flag number
         last_line = ''
         end_fit = False
 
-        for line in self.eft_lines:
-            if last_line == '' and line == '':
-                end_fit = True
-
-            last_line = line
-            if line == '':
-                counter = 0
-                continue
-
-            if line.startswith('['):
-                if ', ' in line:
-                    ship_type, fit_name = line[1:-1].split(', ')
-                    continue
-
-                if 'empty' in line.strip('[]').lower():
-                    continue
-
+        for section in sections:
+            counter = 0;
+            if section.isDroneBay():
+                for line in section.lines:
+                    quantity = line.split()[-1]
+                    item_name = line.split(quantity)[0].strip()
+                    drone_bay.append({'name': item_name, 'quantity': int(quantity.strip('x')), 'section_name': 'DroneBay'})
+            elif section.isFighterBay():
+                for line in section.lines:
+                    quantity = line.split()[-1]
+                    item_name = line.split(quantity)[0].strip()
+                    fighter_bay.append({'name': item_name, 'quantity': int(quantity.strip('x')), 'section_name': 'FighterBay'})
             else:
-                if ',' in line:
-                    module, charge = line.split(',')
-                    modules.append({'name': module, 'charge': charge.strip(), 'count': counter})
-                else:
-                    quantity = line.split()[-1]  # Quantity will always be the last element, if it is there.
+                for line in section.lines:
+                    if line.startswith('['):
+                        if ', ' in line:
+                            ship_type, fit_name = line[1:-1].split(', ')
+                            continue
 
-                    if 'x' in quantity and quantity[1:].isdigit():
-                        item_name = line.split(quantity)[0].strip()
-                        cargo_drone.append({'name': item_name, 'quantity': int(quantity.strip('x'))})
-                    elif end_fit is True:
-                        cargo_drone.append({'name': line.strip(), 'quantity': 1})
+                        if 'empty' in line.strip('[]').lower():
+                            continue
                     else:
-                        modules.append({'name': line.strip(), 'charge': '', 'count': counter})
-            counter += 1
+                        if ',' in line:
+                            module, charge = line.split(',')
+                            modules.append({'name': module, 'charge': charge.strip(), 'count': counter})
+                        else:
+                            
+                            quantity = line.split()[-1]  # Quantity will always be the last element, if it is there.
 
-        return {'ship': ship_type, 'name': fit_name, 'modules': modules, 'cargo_drones': cargo_drone}
+                            if 'x' in quantity and quantity[1:].isdigit():
+                                item_name = line.split(quantity)[0].strip()
+                                cargo.append({'name': item_name, 'quantity': int(quantity.strip('x')), 'section_name': 'Cargo'})
+                            elif end_fit is True:
+                                cargo.append({'name': line.strip(), 'quantity': 1, 'section_name': 'Cargo'})
+                            else:
+                                modules.append({'name': line.strip(), 'charge': '', 'count': counter})
+                    counter += 1
+
+        return {'ship': ship_type, 'name': fit_name, 'modules': modules, 'cargo': cargo, 'drone_bay': drone_bay, 'fighter_bay': fighter_bay}
+
+def _importSectionIter(lines):
+    section = Section()
+    for line in lines:
+        if not line:
+            if section.lines:
+                yield section
+                section = Section()
+        else:
+            section.lines.append(line)
+    if section.lines:
+        yield section
+
+class Section:    
+    def __init__(self):
+        self.lines = []
+
+    def isDroneBay(self):
+
+        types = []
+        for line in self.lines:
+            if line.startswith('['):
+                return False
+            quantity = line.split()[-1]
+            if 'x' in quantity and quantity[1:].isdigit():
+                types.append(_get_type(line.split(quantity)[0].strip()))
+            else:
+                types.append(_get_type(line.strip()))
+        return all(type is not None and type.category_id == 18 for type in types)
+
+    def isFighterBay(self):
+        types = []
+        for line in self.lines:
+            if line.startswith('['):
+                return False
+            quantity = line.split()[-1]
+            if 'x' in quantity and quantity[1:].isdigit():
+                types.append(_get_type(line.split(quantity)[0].strip()))
+            else:
+                types.append(_get_type(line.strip()))
+        return all(type is not None and type.category_id == 87 for type in types)
+
+            
 
 
 def _get_type(type_name):
@@ -84,7 +138,7 @@ def create_fitting_item(fit, item):
     effects = type_obj.dogma_effects.filter(effect_id__in=flags).values_list('effect_id', flat=True)
     effects = list(effects)
     if count is None:
-        flag = 'Cargo'
+        flag = item['section_name']
         quantity = item['quantity']
     else:
         flag = flags[effects[0]] + str(count)

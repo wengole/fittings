@@ -19,6 +19,9 @@ class TypeManager(models.Manager):
         type_result['type_name'] = type_name
         attributes = type_result.pop('dogma_attributes')
         effects = type_result.pop('dogma_effects')
+        group_result = c.Universe.get_universe_groups_group_id(group_id=type_result['group_id']).result()
+        type_result.append({'category_id' : group_result['category_id']})
+
 
         obj = self.update_or_create(type_id=_id, defaults=type_result)
 
