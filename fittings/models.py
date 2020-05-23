@@ -9,6 +9,7 @@ class Type(models.Model):
     type_name = models.CharField(max_length=500)
     type_id = models.BigIntegerField(primary_key=True)
     group_id = models.IntegerField()
+    category_id = models.IntegerField(null=True)
     published = models.BooleanField(default=False)
     mass = models.FloatField(null=True)
     capacity = models.FloatField(null=True)
@@ -80,7 +81,7 @@ class Fitting(models.Model):
 
         eft = '[' + self.ship_type.type_name + ', ' + self.name + ']\n\n'
 
-        temp = { 'Cargo': [] }
+        temp = { 'Cargo': [], 'FighterBay': [], 'DroneBay': []}
         
         slots = [
             { 'key': 'LoSlot', 'range': 8 },
@@ -94,6 +95,10 @@ class Fitting(models.Model):
         for item in items:
             if item.flag == 'Cargo':
                 temp['Cargo'].append(item)
+            elif item.flag == 'FighterBay':
+                temp['FighterBay'].append(item)
+            elif item.flag == 'DroneBay':
+                temp['DroneBay'].append(item)
             else:
                 temp[item.flag] = item.item_name
 
