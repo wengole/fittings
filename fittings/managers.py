@@ -24,11 +24,13 @@ class TypeManager(models.Manager):
 
         # Handle Attributes
         from .models import DogmaAttribute
-        DogmaAttribute.objects.bulk_attributes(attributes, obj[0].pk)
+        if attributes is not None:
+            DogmaAttribute.objects.bulk_attributes(attributes, obj[0].pk)
 
         # Handle Effects
         from .models import DogmaEffect
-        DogmaEffect.objects.bulk_effects(effects, obj[0].pk)
+        if effects is not None:
+            DogmaEffect.objects.bulk_effects(effects, obj[0].pk)
 
         return obj[0]
 
