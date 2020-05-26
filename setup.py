@@ -6,10 +6,10 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 install_requires = [
-    'django-bootstrap-form',
     'allianceauth>=2.0.5',
+    'django-bootstrap-form',
     'django-model_utils>=3.1.1',
-    'django~=2.2',
+    'django-esi>=2.0.0b1',
 ]
 
 testing_extras = [
