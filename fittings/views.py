@@ -56,7 +56,7 @@ def dashboard(request):
     return render(request, 'fittings/dashboard.html', context=ctx)
 
 
-@permission_required('fittings.access_fittings')
+@permission_required('fittings.manage')
 @login_required()
 def add_fit(request):
     msg = None
@@ -71,7 +71,7 @@ def add_fit(request):
     ctx = {'msg': msg}
     return render(request, 'fittings/add_fit.html', context=ctx)
 
-@permission_required('fittings.access_fittings')
+@permission_required('fittings.manage')
 @login_required()
 def edit_fit(request, fit_id):
     ctx = {}
