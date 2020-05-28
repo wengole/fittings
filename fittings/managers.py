@@ -1,6 +1,8 @@
 from django.db import models
 from .providers import esi
+from allianceauth.services.hooks import get_extension_logger
 
+logger = get_extension_logger(__name__)
 
 class ItemCategoryManager(models.Manager):
     def get_or_create(self, cat_id):
@@ -138,6 +140,31 @@ class TypeManager(models.Manager):
         type_result['group'] = ItemGroup.objects.get_or_create(grp_id)
 
         obj = self.update_or_create(type_id=_id, defaults=type_result)
+
+        # Handle Attributes
+        from .models import DogmaAttribute
+        if attributes is not None:
+            DogmaAttribute.objects.bulk_attributes(attributes, obj[0].pk)
+
+        # Handle Effects
+        from .models import DogmaEffect
+        if effects is not None:
+            DogmaEffect.objects.bulk_effects(effects, obj[0].pk)
+
+        return obj[0]
+
+    def create_type_from_id(self, type_id):
+        c = esi.client
+        type_result = c.Universe.get_universe_types_type_id(type_id=type_id).result()
+        type_name = type_result.pop('name')
+        type_result['type_name'] = type_name
+        attributes = type_result.pop('dogma_attributes')
+        effects = type_result.pop('dogma_effects')
+        grp_id = type_result.pop('group_id')
+        from .models import ItemGroup
+        type_result['group'] = ItemGroup.objects.get_or_create(grp_id)
+
+        obj = self.update_or_create(type_id=type_id, defaults=type_result)
 
         # Handle Attributes
         from .models import DogmaAttribute

@@ -12,7 +12,6 @@ from allianceauth.services.hooks import get_extension_logger
 
 logger = get_extension_logger(__name__)
 
-
 class EftParser:
     def __init__(self, eft_text):
         self.eft_lines = eft_text.strip().splitlines()
@@ -230,7 +229,7 @@ def missing_group_type_fix():
     _processes = []
     with ThreadPoolExecutor(max_workers=50) as ex:
         for _type in types:
-            _processes.append(ex.submit(Type.objects.create_type, _type.type_name))
+            _processes.append(ex.submit(Type.objects.create_type_from_id, _type.type_id))
 
     for item in as_completed(_processes):
         _ = item.result()
