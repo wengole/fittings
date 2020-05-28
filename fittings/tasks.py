@@ -162,7 +162,12 @@ def create_fit(eft_text, description=None):
         return fit
 
     fit = __create_fit(parsed_eft['ship'], parsed_eft['name'], description)
+    create_fitting_items(fit, parsed_eft)
 
+    logger.info("Done creating fit.")
+
+@shared_task 
+def create_fitting_items(fit, parsed_eft):
     type_names = [x['name'] for x in parsed_eft['modules']]
     type_names += [x['name'] for x in parsed_eft['cargo']]
     type_names += [x['name'] for x in parsed_eft['drone_bay']]
@@ -196,8 +201,25 @@ def create_fit(eft_text, description=None):
     for item in parsed_eft['fighter_bay']:
         create_fitting_item(fit, item)
 
-    logger.info("Done creating fit.")
+@shared_task
+def update_fit(eft_text, fit_id, description=None):
+    parsed_eft = EftParser(eft_text).parse()
+    fit = Fitting.objects.get(id=fit_id)
 
+    if parsed_eft['ship'] != fit.ship_type.type_name:
+        logger.info("Cannot update a fitting with different ship type")
+        return
+
+    logger.info("Updating Fit name: {parsed_eft['name']}, Type: {parsed_eft['ship']}")  
+
+    FittingItem.objects.filter(fit__id=fit_id).delete() 
+
+    create_fitting_items(fit, parsed_eft)
+
+    fit.description = description
+    fit.save()
+
+    logger.info("Done updating fit " + fit_id)
 
 @shared_task
 def missing_group_type_fix():
