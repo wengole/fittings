@@ -129,7 +129,7 @@ def view_fit(request, fit_id):
     return render(request, 'fittings/view_fit.html', context=ctx)
 
 
-@permission_required('fittings.access_fittings')
+@permission_required('fittings.manage')
 @login_required()
 def add_doctrine(request):
     ctx = {}
