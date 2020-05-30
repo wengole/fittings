@@ -215,6 +215,7 @@ def update_fit(eft_text, fit_id, description=None):
 
     create_fitting_items(fit, parsed_eft)
 
+    fit.name = parsed_eft['name']
     fit.description = description
     fit.save()
 
