@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .tasks import create_fit
+from .tasks import create_fit, update_fit
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Subquery, OuterRef, Case, When, Value, CharField, F, Exists, Count
 from .models import Doctrine, Fitting, Type, FittingItem, DogmaEffect
@@ -56,7 +56,7 @@ def dashboard(request):
     return render(request, 'fittings/dashboard.html', context=ctx)
 
 
-@permission_required('fittings.access_fittings')
+@permission_required('fittings.manage')
 @login_required()
 def add_fit(request):
     msg = None
@@ -70,6 +70,30 @@ def add_fit(request):
 
     ctx = {'msg': msg}
     return render(request, 'fittings/add_fit.html', context=ctx)
+
+@permission_required('fittings.manage')
+@login_required()
+def edit_fit(request, fit_id):
+    ctx = {}
+    try:
+        fit = Fitting.objects.get(pk=fit_id)
+        
+    except Fitting.DoesNotExist:
+        msg = ('warning', 'Fit not found!')
+
+        return redirect('fittings:dashboard')
+    msg = None
+    if request.method == 'POST':
+        etf_text = request.POST['eft']
+        description = request.POST['description']
+
+        update_fit.delay(etf_text, fit_id, description)
+        # Add success message, with note that it may take some time to see the fit on the dashboard.
+        return redirect('fittings:view_fit', fit_id)
+
+    ctx = {'msg': msg}
+    ctx['fit'] = fit
+    return render(request, 'fittings/edit_fit.html', context=ctx)
 
 
 @permission_required('fittings.access_fittings')
@@ -105,7 +129,7 @@ def view_fit(request, fit_id):
     return render(request, 'fittings/view_fit.html', context=ctx)
 
 
-@permission_required('fittings.access_fittings')
+@permission_required('fittings.manage')
 @login_required()
 def add_doctrine(request):
     ctx = {}

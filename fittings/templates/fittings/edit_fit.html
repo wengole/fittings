@@ -1,0 +1,49 @@
+{% extends 'fittings/base.html' %}
+{% load i18n %}
+{% load humanize %}
+{% load filters %}
+
+{% block page_title %}{% trans "Update Fit" %}{% endblock %}
+
+{% block fittings_block %}
+    {% if msg %}
+            <div class="alert alert-{{ msg.0 }} alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="close">
+                        <span aria-hidden="true">&times</span>
+                    </button>
+                    {% if msg.0 != 'warning' %}<h4>{% if msg.0 == 'danger' %}Oh No!{% elif msg.0 == 'success' %}Success!{% endif %}</h4>{% endif %}
+                    <p>{{ msg.1 }}</p>
+                </div>
+        {% endif %}
+    <div class="container col-sm-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                Update Fitting
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-10 col-md-offset-1">
+                        <form class="form-signin" role="form" action="" method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="iconSelect" class="col-sm-2 control-label">Description</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" name="description" id="description" value="{{ fit.description }}" />
+                                </div>
+                            </div>
+                            <br />
+                            <div class="form-group" >
+                                <label for="iconSelect" class="col-sm-2 control-label">Fit</label>
+                                <div class="col-sm-10" style="margin-top: 5px; margin-bottom: 5px;">
+                                    <textarea class="form-control" name="eft" id="eft" rows="10">{{ fit.eft }}</textarea>
+                                </div>
+                            </div>
+                            <br />
+                            <button class="btn btn-primary btn-block" type="submit">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
