@@ -4,6 +4,7 @@ from allianceauth.services.hooks import get_extension_logger
 
 logger = get_extension_logger(__name__)
 
+
 class ItemCategoryManager(models.Manager):
     def get_or_create(self, cat_id):
         try:
@@ -23,8 +24,10 @@ class ItemCategoryManager(models.Manager):
         """
 
         c = esi.client
-        cat = c.Universe.get_universe_categories_category_id(category_id=cat_id).result()
-        groups = cat.pop('groups')
+        cat = c.Universe.get_universe_categories_category_id(
+            category_id=cat_id
+        ).result()
+        groups = cat.pop("groups")
 
         obj = self.update_or_create(category_id=cat_id, defaults=cat)
 
@@ -39,6 +42,7 @@ class ItemCategoryManager(models.Manager):
         cat, groups = self.create_category(cat_id)
 
         from .models import ItemGroup
+
         # Check for groups missing from the category
         missing = ItemGroup.objects.check_groups(groups)
 
@@ -55,6 +59,7 @@ class ItemCategoryManager(models.Manager):
         :return:
         """
         from .models import ItemGroup
+
         grps = ItemGroup.objects.filter(category_id=self)
         return grps
 
@@ -67,6 +72,7 @@ class ItemGroupManager(models.Manager):
         :return:
         """
         from .models import Type
+
         types = Type.objects.filter(group=self)
         return types
 
@@ -86,7 +92,7 @@ class ItemGroupManager(models.Manager):
         :param ids: List of ids to check
         :return: List of group ids missing.
         """
-        exist = self.filter(group_id__in=ids).values_list('group_id', flat=True)
+        exist = self.filter(group_id__in=ids).values_list("group_id", flat=True)
         missing = [x for x in ids if x not in exist]
         return missing
 
@@ -99,19 +105,20 @@ class ItemGroupManager(models.Manager):
         """
         c = esi.client
         group = c.Universe.get_universe_groups_group_id(group_id=group_id).result()
-        cat_id = group.pop('category_id')
+        cat_id = group.pop("category_id")
 
         # If called from a method that has already created the category, it should send along the
         # category ID to indicate that it has been created already. We will use this to set the FK
         # and save some DB time.
         if passed_id is None:
             from .models import ItemCategory
-            cat = ItemCategory.objects.get_or_create(cat_id)
-            group['category'] = cat
-        else:
-            group['category_id'] = cat_id
 
-        _ = group.pop('types')
+            cat = ItemCategory.objects.get_or_create(cat_id)
+            group["category"] = cat
+        else:
+            group["category_id"] = cat_id
+
+        _ = group.pop("types")
 
         obj = self.update_or_create(group_id=group_id, defaults=group)
 
@@ -131,23 +138,26 @@ class TypeManager(models.Manager):
         _id = self.__get_type_id(self, type_name)
         c = esi.client
         type_result = c.Universe.get_universe_types_type_id(type_id=_id).result()
-        type_name = type_result.pop('name')
-        type_result['type_name'] = type_name
-        attributes = type_result.pop('dogma_attributes')
-        effects = type_result.pop('dogma_effects')
-        grp_id = type_result.pop('group_id')
+        type_name = type_result.pop("name")
+        type_result["type_name"] = type_name
+        attributes = type_result.pop("dogma_attributes")
+        effects = type_result.pop("dogma_effects")
+        grp_id = type_result.pop("group_id")
         from .models import ItemGroup
-        type_result['group'] = ItemGroup.objects.get_or_create(grp_id)
+
+        type_result["group"] = ItemGroup.objects.get_or_create(grp_id)
 
         obj = self.update_or_create(type_id=_id, defaults=type_result)
 
         # Handle Attributes
         from .models import DogmaAttribute
+
         if attributes is not None:
             DogmaAttribute.objects.bulk_attributes(attributes, obj[0].pk)
 
         # Handle Effects
         from .models import DogmaEffect
+
         if effects is not None:
             DogmaEffect.objects.bulk_effects(effects, obj[0].pk)
 
@@ -156,23 +166,26 @@ class TypeManager(models.Manager):
     def create_type_from_id(self, type_id):
         c = esi.client
         type_result = c.Universe.get_universe_types_type_id(type_id=type_id).result()
-        type_name = type_result.pop('name')
-        type_result['type_name'] = type_name
-        attributes = type_result.pop('dogma_attributes')
-        effects = type_result.pop('dogma_effects')
-        grp_id = type_result.pop('group_id')
+        type_name = type_result.pop("name")
+        type_result["type_name"] = type_name
+        attributes = type_result.pop("dogma_attributes")
+        effects = type_result.pop("dogma_effects")
+        grp_id = type_result.pop("group_id")
         from .models import ItemGroup
-        type_result['group'] = ItemGroup.objects.get_or_create(grp_id)
+
+        type_result["group"] = ItemGroup.objects.get_or_create(grp_id)
 
         obj = self.update_or_create(type_id=type_id, defaults=type_result)
 
         # Handle Attributes
         from .models import DogmaAttribute
+
         if attributes is not None:
             DogmaAttribute.objects.bulk_attributes(attributes, obj[0].pk)
 
         # Handle Effects
         from .models import DogmaEffect
+
         if effects is not None:
             DogmaEffect.objects.bulk_effects(effects, obj[0].pk)
 
@@ -182,12 +195,18 @@ class TypeManager(models.Manager):
 class DogmaAttributeManager(models.Manager):
     def bulk_attributes(self, attributes, type_pk):
         for attribute in attributes:
-            attribute['type_id'] = type_pk
-            att = self.update_or_create(type_id=type_pk, attribute_id=attribute['attribute_id'], defaults=attribute)
+            attribute["type_id"] = type_pk
+            att = self.update_or_create(
+                type_id=type_pk,
+                attribute_id=attribute["attribute_id"],
+                defaults=attribute,
+            )
 
 
 class DogmaEffectManager(models.Manager):
     def bulk_effects(self, effects, type_pk):
         for effect in effects:
-            effect['type_id'] = type_pk
-            eff = self.update_or_create(type_id=type_pk, effect_id=effect['effect_id'], defaults=effect)
+            effect["type_id"] = type_pk
+            eff = self.update_or_create(
+                type_id=type_pk, effect_id=effect["effect_id"], defaults=effect
+            )
