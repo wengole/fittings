@@ -1,7 +1,15 @@
 from django.db import models
-from model_utils import Choices
-from .managers import TypeManager, DogmaAttributeManager, DogmaEffectManager, ItemCategoryManager, ItemGroupManager
-from django.db.models import Subquery, OuterRef, CharField
+from django.db.models import Subquery, OuterRef
+from django.utils.translation import gettext_lazy as _
+
+from .managers import (
+    TypeManager,
+    DogmaAttributeManager,
+    DogmaEffectManager,
+    ItemCategoryManager,
+    ItemGroupManager,
+)
+
 
 # TODO: Investigate effect of changing group_id to FK from integer field.
 
@@ -166,16 +174,53 @@ class Fitting(models.Model):
 
 # Fitting items
 class FittingItem(models.Model):
-    fit = models.ForeignKey(Fitting, on_delete=models.CASCADE, related_name='items')
-    _flag_enum = Choices('Cargo', 'DroneBay', 'FighterBay', 'HiSlot0', 'HiSlot1', 'HiSlot2',
-                         'HiSlot3', 'HiSlot4', 'HiSlot5', 'HiSlot6', 'HiSlot7', 'Invalid',
-                         'LoSlot0', 'LoSlot1', 'LoSlot2', 'LoSlot3', 'LoSlot4', 'LoSlot5',
-                         'LoSlot6', 'LoSlot7', 'MedSlot0', 'MedSlot1', 'MedSlot2', 'MedSlot3',
-                         'MedSlot4', 'MedSlot5', 'MedSlot6', 'MedSlot7', 'RigSlot0', 'RigSlot1',
-                         'RigSlot2', 'ServiceSlot0', 'ServiceSlot1', 'ServiceSlot2', 'ServiceSlot3',
-                         'ServiceSlot4', 'ServiceSlot5', 'ServiceSlot6', 'ServiceSlot7', 'SubSystemSlot0',
-                         'SubSystemSlot1', 'SubSystemSlot2', 'SubSystemSlot3')
-    flag = models.CharField(max_length=25, choices=_flag_enum, default='Invalid')
+    class Flag(models.TextChoices):
+        CARGO = "Cargo", _("Cargo")
+        DRONEBAY = "DroneBay", _("DroneBay")
+        FIGHTERBAY = "FighterBay", _("FighterBay")
+        HISLOT0 = "HiSlot0", _("HiSlot0")
+        HISLOT1 = "HiSlot1", _("HiSlot1")
+        HISLOT2 = "HiSlot2", _("HiSlot2")
+        HISLOT3 = "HiSlot3", _("HiSlot3")
+        HISLOT4 = "HiSlot4", _("HiSlot4")
+        HISLOT5 = "HiSlot5", _("HiSlot5")
+        HISLOT6 = "HiSlot6", _("HiSlot6")
+        HISLOT7 = "HiSlot7", _("HiSlot7")
+        INVALID = "Invalid", _("Invalid")
+        LOSLOT0 = "LoSlot0", _("LoSlot0")
+        LOSLOT1 = "LoSlot1", _("LoSlot1")
+        LOSLOT2 = "LoSlot2", _("LoSlot2")
+        LOSLOT3 = "LoSlot3", _("LoSlot3")
+        LOSLOT4 = "LoSlot4", _("LoSlot4")
+        LOSLOT5 = "LoSlot5", _("LoSlot5")
+        LOSLOT6 = "LoSlot6", _("LoSlot6")
+        LOSLOT7 = "LoSlot7", _("LoSlot7")
+        MEDSLOT0 = "MedSlot0", _("MedSlot0")
+        MEDSLOT1 = "MedSlot1", _("MedSlot1")
+        MEDSLOT2 = "MedSlot2", _("MedSlot2")
+        MEDSLOT3 = "MedSlot3", _("MedSlot3")
+        MEDSLOT4 = "MedSlot4", _("MedSlot4")
+        MEDSLOT5 = "MedSlot5", _("MedSlot5")
+        MEDSLOT6 = "MedSlot6", _("MedSlot6")
+        MEDSLOT7 = "MedSlot7", _("MedSlot7")
+        RIGSLOT0 = "RigSlot0", _("RigSlot0")
+        RIGSLOT1 = "RigSlot1", _("RigSlot1")
+        RIGSLOT2 = "RigSlot2", _("RigSlot2")
+        SERVICESLOT0 = "ServiceSlot0", _("ServiceSlot0")
+        SERVICESLOT1 = "ServiceSlot1", _("ServiceSlot1")
+        SERVICESLOT2 = "ServiceSlot2", _("ServiceSlot2")
+        SERVICESLOT3 = "ServiceSlot3", _("ServiceSlot3")
+        SERVICESLOT4 = "ServiceSlot4", _("ServiceSlot4")
+        SERVICESLOT5 = "ServiceSlot5", _("ServiceSlot5")
+        SERVICESLOT6 = "ServiceSlot6", _("ServiceSlot6")
+        SERVICESLOT7 = "ServiceSlot7", _("ServiceSlot7")
+        SUBSYSTEMSLOT0 = "SubSystemSlot0", _("SubSystemSlot0")
+        SUBSYSTEMSLOT1 = "SubSystemSlot1", _("SubSystemSlot1")
+        SUBSYSTEMSLOT2 = "SubSystemSlot2", _("SubSystemSlot2")
+        SUBSYSTEMSLOT3 = "SubSystemSlot3", _("SubSystemSlot3")
+
+    fit = models.ForeignKey(Fitting, on_delete=models.CASCADE, related_name="items")
+    flag = models.CharField(max_length=25, choices=Flag.choices, default=Flag.INVALID)
     quantity = models.IntegerField(default=1)
     type_fk = models.ForeignKey(Type, on_delete=models.DO_NOTHING)
     type_id = models.IntegerField()
