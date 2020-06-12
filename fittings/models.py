@@ -48,7 +48,9 @@ class Type(models.Model):
     published = models.BooleanField(default=False)
     mass = models.FloatField(null=True)
     capacity = models.FloatField(null=True)
-    description = models.CharField(max_length=5000, null=True)  # Not sure of the actual max.
+    description = models.CharField(
+        max_length=5000, null=True
+    )  # Not sure of the actual max.
     volume = models.FloatField(null=True)
     packaged_volume = models.FloatField(null=True)
     portion_size = models.IntegerField(null=True)
@@ -70,7 +72,9 @@ class DogmaAttribute(models.Model):
     # 182 | 183 | 184 --- Req Skill 1/2/3
     # 277 - Req. Skill 1 Lvl | 278 | 279 -- Req Skill 1/2 Lvl
     # 1374 - HiSlotModifier | 1375 - MedSlotModifier | 1376 - RigSlotModifier
-    type = models.ForeignKey(Type, on_delete=models.DO_NOTHING, related_name='dogma_attributes')
+    type = models.ForeignKey(
+        Type, on_delete=models.DO_NOTHING, related_name="dogma_attributes"
+    )
     attribute_id = models.IntegerField()
     value = models.FloatField()
 
@@ -79,7 +83,9 @@ class DogmaAttribute(models.Model):
     class Meta:
         default_permissions = ()
         constraints = [
-            models.UniqueConstraint(fields=('attribute_id', 'type'), name='unique_type_and_attribute_id')
+            models.UniqueConstraint(
+                fields=("attribute_id", "type"), name="unique_type_and_attribute_id"
+            )
         ]
 
 
@@ -87,7 +93,9 @@ class DogmaAttribute(models.Model):
 class DogmaEffect(models.Model):
     # 11 - Low Power | 12 - High Power | 13 - Med Power
     # 2663 - Rig Slot | 3772 - Subsystem | 6306 - Service Slot
-    type = models.ForeignKey(Type, on_delete=models.DO_NOTHING, related_name='dogma_effects')
+    type = models.ForeignKey(
+        Type, on_delete=models.DO_NOTHING, related_name="dogma_effects"
+    )
     effect_id = models.IntegerField()
     is_default = models.BooleanField()
 
@@ -96,7 +104,9 @@ class DogmaEffect(models.Model):
     class Meta:
         default_permissions = ()
         constraints = [
-            models.UniqueConstraint(fields=('effect_id', 'type'), name='unique_type_and_effect_id')
+            models.UniqueConstraint(
+                fields=("effect_id", "type"), name="unique_type_and_effect_id"
+            )
         ]
 
 
@@ -109,67 +119,62 @@ class Fitting(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.ship_type.type_name, self.name)
-        
+
     def eft(self):
-        types = Type.objects.filter(type_id=OuterRef('type_id'))
-        items = FittingItem.objects.filter(fit=self).annotate(item_name=Subquery(types.values('type_name')))
+        types = Type.objects.filter(type_id=OuterRef("type_id"))
+        items = FittingItem.objects.filter(fit=self).annotate(
+            item_name=Subquery(types.values("type_name"))
+        )
 
-        eft = '[' + self.ship_type.type_name + ', ' + self.name + ']\n\n'
+        eft = "[" + self.ship_type.type_name + ", " + self.name + "]\n\n"
 
-        temp = { 'Cargo': [], 'FighterBay': [], 'DroneBay': []}
-        
+        temp = {"Cargo": [], "FighterBay": [], "DroneBay": []}
+
         slots = [
-            { 'key': 'LoSlot', 'range': 8 },
-            { 'key': 'MedSlot', 'range': 8 },
-            { 'key': 'HiSlot', 'range': 8 },
-            { 'key': 'RigSlot', 'range': 3 },
-            { 'key': 'SubSystemSlot', 'range': 4 },
-            { 'key': 'ServiceSlot', 'range': 8 }
+            {"key": "LoSlot", "range": 8},
+            {"key": "MedSlot", "range": 8},
+            {"key": "HiSlot", "range": 8},
+            {"key": "RigSlot", "range": 3},
+            {"key": "SubSystemSlot", "range": 4},
+            {"key": "ServiceSlot", "range": 8},
         ]
-        
+
         for item in items:
-            if item.flag == 'Cargo':
-                temp['Cargo'].append(item)
-            elif item.flag == 'FighterBay':
-                temp['FighterBay'].append(item)
-            elif item.flag == 'DroneBay':
-                temp['DroneBay'].append(item)
+            if item.flag == "Cargo":
+                temp["Cargo"].append(item)
+            elif item.flag == "FighterBay":
+                temp["FighterBay"].append(item)
+            elif item.flag == "DroneBay":
+                temp["DroneBay"].append(item)
             else:
                 temp[item.flag] = item.item_name
 
         for slot in slots:
             isEmpty = True
-            for i in range(0, slot['range']):
-                key = slot['key'] + str(i)
+            for i in range(0, slot["range"]):
+                key = slot["key"] + str(i)
                 if key in temp:
-                    eft += temp[key] + '\n'
+                    eft += temp[key] + "\n"
                     isEmpty = False
             if isEmpty == False:
-                eft += '\n'
+                eft += "\n"
 
-
-        slots = [
-            'FighterBay',
-            'DroneBay',
-            'Cargo'
-        ]
+        slots = ["FighterBay", "DroneBay", "Cargo"]
 
         for slot in slots:
             if slot in temp:
-                eft += '\n\n'
+                eft += "\n\n"
                 for item in temp[slot]:
-                    eft += item.item_name + ' x' + str(item.quantity) + '\n'
+                    eft += item.item_name + " x" + str(item.quantity) + "\n"
 
-        eft += '\n'
-        
+        eft += "\n"
+
         return eft
 
     class Meta:
-        default_permissions = (())
-        permissions = (('access_fittings', 'Can access the fittings module.'),)
-        unique_together = (
-            ('ship_type_type_id', 'name'),
-        )
+        default_permissions = ()
+        permissions = (("access_fittings", "Can access the fittings module."),)
+        unique_together = (("ship_type_type_id", "name"),)
 
 
 # Fitting items
@@ -226,19 +231,18 @@ class FittingItem(models.Model):
     type_id = models.IntegerField()
 
     class Meta:
-        default_permissions = (())
+        default_permissions = ()
 
 
 # Doctrine
 class Doctrine(models.Model):
     name = models.CharField(max_length=255, null=False)
     icon_url = models.URLField(null=True)
-    fittings = models.ManyToManyField(Fitting, related_name='doctrines')
+    fittings = models.ManyToManyField(Fitting, related_name="doctrines")
     description = models.CharField(max_length=1000)
     created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(null=True)
 
     class Meta:
-        default_permissions = (())
+        default_permissions = ()
         permissions = (("manage", "Can manage doctrines and fits."),)
-
