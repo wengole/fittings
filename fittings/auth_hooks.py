@@ -5,21 +5,25 @@ from allianceauth.services.hooks import MenuItemHook, UrlHook
 
 class FittingMenu(MenuItemHook):
     def __init__(self):
-        MenuItemHook.__init__(self, 'Fittings and Doctrines',
-                              'fa fa-list-alt fa-fw', 'fittings:dashboard',
-                              navactive=['fittings:'])
+        MenuItemHook.__init__(
+            self,
+            "Fittings and Doctrines",
+            "fa fa-list-alt fa-fw",
+            "fittings:dashboard",
+            navactive=["fittings:"],
+        )
 
     def render(self, request):
-        if request.user.has_perm('fittings.access_fittings'):
+        if request.user.has_perm("fittings.access_fittings"):
             return MenuItemHook.render(self, request)
-        return ''
+        return ""
 
 
-@hooks.register('menu_item_hook')
+@hooks.register("menu_item_hook")
 def register_menu():
     return FittingMenu()
 
 
-@hooks.register('url_hook')
+@hooks.register("url_hook")
 def register_url():
-    return UrlHook(urls, 'fittings', '^fittings/')
+    return UrlHook(urls, "fittings", "^fittings/")

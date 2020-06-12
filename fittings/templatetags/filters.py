@@ -9,17 +9,21 @@ def get_item(dict_, key):
 
 @register.simple_tag()
 def item_img_circle(_id, name, size):
-    return mark_safe('<img class="img-circle" src="https://imageserver.eveonline.com/Type/%s_128.png"'
-                     ' style="height: %spx; width: %spx;" title="%s">' % (_id, size, size, name))
+    return mark_safe(
+        '<img class="img-circle" src="https://imageserver.eveonline.com/Type/%s_128.png"'
+        ' style="height: %spx; width: %spx;" title="%s">' % (_id, size, size, name)
+    )
 
 
 @register.simple_tag()
 def item_img(_id, name, size):
-    return mark_safe('<img src="https://imageserver.eveonline.com/Type/%s_128.png"'
-                     ' style="height: %spx; width: %spx;" title="%s">' % (_id, size, size, name))
+    return mark_safe(
+        '<img src="https://imageserver.eveonline.com/Type/%s_128.png"'
+        ' style="height: %spx; width: %spx;" title="%s">' % (_id, size, size, name)
+    )
 
 
-@register.filter(name='empty_slots')
+@register.filter(name="empty_slots")
 def empty_slots(fittings: dict, slot_type: str):
     keys = fittings.keys()
 
@@ -30,7 +34,7 @@ def empty_slots(fittings: dict, slot_type: str):
     # This slot type is completely empty
     return True
 
+
 @register.filter
 def break_html_lines(value):
-    return value.replace("<br>","\n").replace("<br />","\n")
-
+    return value.replace("<br>", "\n").replace("<br />", "\n")
